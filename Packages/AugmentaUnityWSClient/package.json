@@ -1,0 +1,25 @@
+{
+  "name": "tech.augmenta.augmentawebsocketunityclient",
+  "version": "1.0.4",
+  "author": {
+    "name": "Augmenta",
+    "url": "(http://augmenta.tech)"
+  },
+  "displayName": "Augmenta Websocket Unity Client",
+  "description": "Augmenta WebSocket Unity Client",
+  "keywords": [
+    "unity",
+    "augmenta",
+    "interactive"
+  ],
+  "license": "MIT",
+  "repository": "Augmenta-tech/AugmentaUnityWebsocket",
+  "unity": "2018.3",
+  "samples": [
+    {
+      "displayName": "Augmenta Client",
+      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data. Note that this samples uses a VFX Graph, so it requires HDRP or URP.",
+      "path": "Samples~/SampleAugmentaClient"
+    }
+  ]
+}

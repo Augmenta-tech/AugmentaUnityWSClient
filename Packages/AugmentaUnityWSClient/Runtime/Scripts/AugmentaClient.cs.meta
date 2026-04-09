@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f54af2d74691b604bb55f4b33d35ac95
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - scenePrefab: {fileID: 557207557075932679, guid: 0d8d366e5ddce5d43a2cc98e358f5632, type: 3}
+  - zonePrefab: {fileID: 557207557075932679, guid: deb64c48586925f43be714c0ec7fcd69, type: 3}
+  - objectPrefab: {fileID: 7658793332000198851, guid: 3d7a6e6df4de8d04aaa3c47b8c69f793, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

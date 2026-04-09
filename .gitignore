@@ -1,0 +1,51 @@
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+*.log
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+*.pdb
+
+# VSCode
+.vsconfig
+
+# Unity
+*.unityproj
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.svd
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity3D generated meta files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity3D generated file on crash reports
+sysinfo.txt
+
+# Mono auto generated files
+mono_crash.*
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.unitypackage.meta
+*.app
+
+# Licenses/Readme meta files
+**/LICENSE.md.meta
+**/README.md.meta

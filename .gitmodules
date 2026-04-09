@@ -1,0 +1,3 @@
+[submodule "Packages/AugmentaUnityWSClient/Runtime/Plugins/AugmentaClientSDK-CS~"]
+	path = Packages/AugmentaUnityWSClient/Runtime/Plugins/AugmentaClientSDK-CS~
+	url = git@github.com:Augmenta-tech/AugmentaClientSDK-CS.git
