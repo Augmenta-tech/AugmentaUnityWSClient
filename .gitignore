@@ -45,7 +45,3 @@ mono_crash.*
 *.unitypackage
 *.unitypackage.meta
 *.app
-
-# Licenses/Readme meta files
-**/LICENSE.md.meta
-**/README.md.meta

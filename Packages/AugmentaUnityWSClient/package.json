@@ -1,24 +1,25 @@
 {
-  "name": "tech.augmenta.augmentawebsocketunityclient",
-  "version": "1.0.4",
+  "name": "tech.augmenta.unity-ws-client",
+  "version": "2.0.0",
   "author": {
     "name": "Augmenta",
     "url": "(http://augmenta.tech)"
   },
-  "displayName": "Augmenta Websocket Unity Client",
-  "description": "Augmenta WebSocket Unity Client",
+  "displayName": "Augmenta WS Client for Unity",
+  "description": "Receive data from an Augmenta Server's WebSocket output in Unity",
   "keywords": [
-    "unity",
     "augmenta",
-    "interactive"
+    "interactive",
+    "tracking",
+    "volumetric"
   ],
   "license": "MIT",
   "repository": "Augmenta-tech/AugmentaUnityWebsocket",
   "unity": "2018.3",
   "samples": [
     {
-      "displayName": "Augmenta Client",
-      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data. Note that this samples uses a VFX Graph, so it requires HDRP or URP.",
+      "displayName": "Simple Client",
+      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data.\n To use this sample, you'll need to manually add the Visual Effect Graph package.",
       "path": "Samples~/SampleAugmentaClient"
     }
   ]
