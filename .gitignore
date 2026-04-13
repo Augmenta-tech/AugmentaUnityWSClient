@@ -45,3 +45,6 @@ mono_crash.*
 *.unitypackage
 *.unitypackage.meta
 *.app
+
+# Exported packages
+*.tgz
