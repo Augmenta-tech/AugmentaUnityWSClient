@@ -5,76 +5,28 @@ using UnityEngine.Events;
 
 namespace AugmentaWebsocketClient
 {
-    public class AugmentaObject : MonoBehaviour
+    public abstract class AugmentaObject : MonoBehaviour
     {
-        private GenericObject<Vector3> nativeObject = null;
+        protected GenericObject<Vector3> nativeObject = null;
         private AugmentaContainer parentWorld = null;
         private AugmentaScene parentScene = null;
 
+        /// <summary>
+        /// Fired right after the object has entered the scene
+        /// </summary>
         public UnityEvent<AugmentaObject> onEnter = new();
+
+        /// <summary>
+        /// Fired every time the client receives an update for this object
+        /// </summary>
         public UnityEvent<AugmentaObject> onUpdate = new();
+
+        /// <summary>
+        /// Fired right before the object leaves the scene
+        /// </summary>
         public UnityEvent<AugmentaObject> onLeave = new();
 
         public int objectID { get { return nativeObject.objectID; } }
-
-        /// <summary>
-        /// The point cloud's point array. Points coordinates are relative to the parent augmenta scene's pivot !
-        /// </summary>
-        /// <todo>
-        /// Should points be transformed to be in local or world space ? This could be computationnaly intensive 
-        /// </todo>
-        public Vector3[] points { get { return nativeObject.points.ToArray(); } }
-
-        public GenericObject<Vector3>.State state { get { return nativeObject.state; } }
-
-        /// <summary>
-        /// Average position of a cluster's point cloud's points in world space
-        /// </summary>
-        public Vector3 centroid
-        {
-            get
-            {
-                return this.transform.localToWorldMatrix.MultiplyPoint(nativeObject.centroid);
-            }
-        }
-
-        /// <summary>
-        /// Average position of a cluster's point cloud's points in local space
-        /// </summary>
-        public Vector3 localCentroid
-        {
-            get
-            {
-                return this.nativeObject.centroid;
-            }
-        }
-
-        public Vector3 velocity { get { return nativeObject.velocity; } }
-
-        /// <summary>
-        /// Center of the cluster bounds in world space. Equal to the component's transform position.
-        /// </summary>
-        public Vector3 boxCenter
-        {
-            get
-            {
-                return this.transform.position;
-            }
-        }
-
-        /// <summary>
-        /// Center of the cluster bounds in local space. Equal to the component's transform localPosition.
-        /// </summary>
-        public Vector3 localBoxCenter
-        {
-            get
-            {
-                return this.transform.localPosition;
-            }
-        }
-
-        public Vector3 boxSize { get { return nativeObject.boxSize; } }
-        public float weight { get { return nativeObject.weight; } }
 
         [Header("Debug")]
         public bool drawDebug = true;
@@ -130,38 +82,6 @@ namespace AugmentaWebsocketClient
         public AugmentaScene GetParentScene()
         {
             return this.parentScene;
-        }
-
-        void OnDrawGizmos()
-        {
-            if (!drawDebug || nativeObject == null)
-            {
-                return;
-            }
-
-            bool aboutToLeave = state == GenericObject<Vector3>.State.Ghost || state == GenericObject<Vector3>.State.Leave;
-            Color baseColor = aboutToLeave ? Color.gray / 2 : Color.HSVToRGB(objectID * .1f % 1, 1, 1);
-
-            // Draw point cloud
-            // Points coordinates are in augmenta-world-relative coordinates
-            Gizmos.matrix = transform.parent.localToWorldMatrix;
-            Gizmos.color = baseColor;
-            foreach (var p in points)
-            {
-                Gizmos.DrawSphere(p, .01f);
-            }
-
-            // Draw cluster
-            if (nativeObject.isCluster)
-            {
-                Gizmos.color = baseColor + Color.white * .3f;
-
-                Gizmos.matrix = transform.parent.localToWorldMatrix;
-                Gizmos.DrawWireSphere(this.localCentroid, .05f);
-
-                Gizmos.matrix = transform.localToWorldMatrix;
-                Gizmos.DrawWireCube(Vector3.zero, boxSize);
-            }
         }
     }
 }

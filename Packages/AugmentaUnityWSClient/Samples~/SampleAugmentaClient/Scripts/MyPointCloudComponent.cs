@@ -7,15 +7,15 @@ using UnityEngine.VFX.Utility;
 [RequireComponent(typeof(VisualEffect))]
 public class MyPointCloudComponent : MonoBehaviour
 {
-    private AugmentaObject augmentaObject;
+    [HideInInspector]
+    public AugmentaPointCloud augmentaPointCloud;
     private VisualEffect effect;
 
     private int bufferCapacity = 100000;
     private GraphicsBuffer pointsBuffer;
-
-    [SerializeField] private ExposedProperty pointsProperty = "Points";
-    [SerializeField] private ExposedProperty pointsCountProperty = "PointsCount";
-    [SerializeField] private ExposedProperty sceneToWorldTransformProperty = "SceneToWorldTransform";
+    private ExposedProperty pointsProperty = "Points";
+    private ExposedProperty pointsCountProperty = "PointsCount";
+    private ExposedProperty sceneToWorldTransformProperty = "SceneToWorldTransform";
 
     void OnEnable()
     {
@@ -33,22 +33,22 @@ public class MyPointCloudComponent : MonoBehaviour
         pointsBuffer.Release();
     }
 
-    public void Initialize(AugmentaObject obj)
+    public void Initialize(AugmentaPointCloud obj)
     {
-        this.augmentaObject = obj;
-        augmentaObject.onEnter.AddListener(OnObjectEnter);
-        augmentaObject.onUpdate.AddListener(OnObjectUpdate);
-        augmentaObject.onLeave.AddListener(OnObjectLeave);
+        this.augmentaPointCloud = obj;
+        augmentaPointCloud.onEnter.AddListener(OnObjectEnter);
+        augmentaPointCloud.onUpdate.AddListener(OnObjectUpdate);
+        augmentaPointCloud.onLeave.AddListener(OnObjectLeave);
     }
 
     void OnObjectUpdate(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaObject);
+        Assert.AreEqual(obj, augmentaPointCloud);
 
         // Grow buffer if necessary
-        if (obj.points.Length > this.bufferCapacity)
+        if (augmentaPointCloud.points.Count > this.bufferCapacity)
         {
-            this.bufferCapacity = obj.points.Length;
+            this.bufferCapacity = augmentaPointCloud.points.Count;
 
             pointsBuffer.Release();
             pointsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, this.bufferCapacity, 3 * sizeof(float));
@@ -57,10 +57,10 @@ public class MyPointCloudComponent : MonoBehaviour
         this.effect.Reinit();
 
         // Copy updated point count to GPU
-        this.effect.SetUInt(pointsCountProperty, (uint)obj.points.Length);
+        this.effect.SetUInt(pointsCountProperty, (uint)augmentaPointCloud.points.Count);
 
         // Copy the updated points buffer to the GPU one
-        pointsBuffer.SetData(obj.points);
+        pointsBuffer.SetData(augmentaPointCloud.points.Array, 0, 0, augmentaPointCloud.points.Count); 
         this.effect.SetGraphicsBuffer(pointsProperty, pointsBuffer);
 
         // Point Clouds come in scene-pivot-relative coordinates, so we need to transform them in the shader
@@ -69,19 +69,20 @@ public class MyPointCloudComponent : MonoBehaviour
 
     private void OnObjectLeave(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaObject);
+        Assert.AreEqual(obj, augmentaPointCloud);
         Debug.Log("Point Cloud object leaving. Bye !");
 
-        augmentaObject.onEnter.RemoveListener(OnObjectEnter);
-        augmentaObject.onUpdate.RemoveListener(OnObjectUpdate);
-        augmentaObject.onLeave.RemoveListener(OnObjectLeave);
+        augmentaPointCloud.onEnter.RemoveListener(OnObjectEnter);
+        augmentaPointCloud.onUpdate.RemoveListener(OnObjectUpdate);
+        augmentaPointCloud.onLeave.RemoveListener(OnObjectLeave);
 
-        Destroy(gameObject);
+        // In this sample, object cleanup is handled by the MyAugmentaManager component
+        //Destroy(gameObject);
     }
 
     private void OnObjectEnter(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaObject);
+        Assert.AreEqual(obj, augmentaPointCloud);
         Debug.Log("Point Cloud object entered. Hello !");
     }
 }

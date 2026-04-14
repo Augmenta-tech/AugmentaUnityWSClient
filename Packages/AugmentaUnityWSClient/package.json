@@ -19,7 +19,7 @@
   "samples": [
     {
       "displayName": "Simple Client",
-      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data.\n To use this sample, you'll need to manually add the Visual Effect Graph package.",
+      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data.\nTo use this sample, you'll need to manually add the Visual Effect Graph package.",
       "path": "Samples~/SampleAugmentaClient"
     }
   ]

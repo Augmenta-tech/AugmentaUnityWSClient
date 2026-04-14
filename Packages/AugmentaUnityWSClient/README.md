@@ -13,32 +13,32 @@ This is a new Augmenta package for Unity, which is designed to receive data from
 
 ## Requirements
 
-Augmenta 1.5.0b+
-OR
-Augmenta (new) simulator 1.5.0b+ : [Augmenta new Simulator (beta)](https://tech.docs.augmenta.tech/beta-program/augmenta-new-simulator-(beta))
+An Augmenta server, local or remote, using Augmenta 1.5.0b+
+Newever versions (1.6.0+) can also be used a [simulator](https://tech.docs.augmenta.tech/beta-program/augmenta-new-simulator-(beta)).
 
 ## Getting started
-
-In Unity:
+### Download the package
 
 - Window > Package Manager
-- Click on the “+” at the top left > Install package from git URL…
-- Copy the URL: https://github.com/Augmenta-tech/AugmentaUnityWebsocket.git?path=/Package/AugmentaUnityWSClient#new-structure
+- Click on the “+” on the top left > Install package from git URL…
+- Copy the URL: https://github.com/Augmenta-tech/AugmentaUnityWebsocket.git?path=/Packages/AugmentaUnityWSClient#new-structure
 - On the right > Install
-- In your Project, under Packages/Augmenta Websocket Unity Client you’ll find everything you need.
+- You can now find the package in your project's Packages directory
 
-Check out the provided sample scene to get an idea how to make use of the package !
+### Learn how to use the package 
+The packages comes with a sample project that can you can study or reuse to learn how to work with Augmenta and get started.
+
+In the Package Manager, select the package, and go to the "Samples" tab. On the right, you can "import" the sample to copy it to your Project.
 
 ## Dependencies
 ### Augmenta SDK
 This package makes use of the [Augmenta Client C# SDK](https://github.com/Augmenta-tech/AugmentaClientSDK-CS).  
 
 ### Third party
-[ZstdNet](https://www.nuget.org/packages/ZstdNet)
-[websocket-sharp](https://github.com/sta/websocket-sharp)
+- [ZstdNet](https://www.nuget.org/packages/ZstdNet)
+- [websocket-sharp](https://github.com/sta/websocket-sharp)
 
 ## License
-
 This Unity plugin is open source under the MIT License (see LICENSE).  
 However, it uses the proprietary Augmenta SDK, which is not open source.  
 Use of the SDK is subject to the Augmenta SDK License.  

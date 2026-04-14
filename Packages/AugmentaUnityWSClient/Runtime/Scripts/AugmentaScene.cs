@@ -13,11 +13,14 @@ namespace AugmentaWebsocketClient
         private GameObject childrenContainer;
         private GameObject pivot;
 
-        public List<AugmentaObject> clusters = new();
-        public List<AugmentaObject> pointClouds = new();
+        public List<AugmentaCluster> clusters = new();
+        public List<AugmentaPointCloud> pointClouds = new();
 
-        public UnityEvent<AugmentaScene, AugmentaObject> onObjectEnter = new();
-        public UnityEvent<AugmentaScene, AugmentaObject> onObjectLeave = new();
+        public UnityEvent<AugmentaScene, AugmentaCluster> onClusterEntered = new();
+        public UnityEvent<AugmentaScene, AugmentaCluster> onClusterLeft = new();
+
+        public UnityEvent<AugmentaScene, AugmentaPointCloud> onPointCloudEntered = new();
+        public UnityEvent<AugmentaScene, AugmentaPointCloud> onPointCloudLeft = new();
 
         public Vector3 size { get => nativeScene.size; }
 
@@ -70,40 +73,48 @@ namespace AugmentaWebsocketClient
 
         private void OnObjectEntered(Augmenta.GenericObject<Vector3> enteredObject)
         {
-            AugmentaObject objectComponent = new GameObject().AddComponent<AugmentaObject>();
-            objectComponent.transform.SetParent(this.objectsContainer.transform, false);
-            objectComponent.Initialize(enteredObject, this.parentClientComponent.GetWorld(), this);
             if (enteredObject.isCluster)
             {
-                this.clusters.Add(objectComponent);
+                AugmentaCluster clusterComponent = new GameObject().AddComponent<AugmentaCluster>();
+                clusterComponent.transform.SetParent(this.objectsContainer.transform, false);
+                clusterComponent.Initialize(enteredObject, this.parentClientComponent.GetWorld(), this);
+                this.clusters.Add(clusterComponent);
+
+                onClusterEntered.Invoke(this, clusterComponent);
             }
             else
             {
-                this.pointClouds.Add(objectComponent);
+                AugmentaPointCloud pcComponent = new GameObject().AddComponent<AugmentaPointCloud>();
+                pcComponent.transform.SetParent(this.objectsContainer.transform, false);
+                pcComponent.Initialize(enteredObject, this.parentClientComponent.GetWorld(), this);
+                this.pointClouds.Add(pcComponent);
+            
+                onPointCloudEntered.Invoke(this, pcComponent);
             }
 
-            onObjectEnter.Invoke(this, objectComponent);
         }
 
         private void OnObjectExited(Augmenta.GenericObject<Vector3> exitedObject)
         {
-            AugmentaObject objectComponent = null;
             if (exitedObject.isCluster)
             {
-                objectComponent = this.clusters.Find(cluster => cluster.objectID == exitedObject.objectID);
-                Assert.IsNotNull(objectComponent);
-                this.clusters.Remove(objectComponent);
+                AugmentaCluster clusterComponent = this.clusters.Find(cluster => cluster.objectID == exitedObject.objectID);
+                Assert.IsNotNull(clusterComponent);
+                this.clusters.Remove(clusterComponent);
+                
+                this.onClusterLeft?.Invoke(this, clusterComponent);
+                Destroy(clusterComponent.gameObject);
+
             }
             else
             {
-                objectComponent = this.pointClouds.Find(pc => pc.objectID == exitedObject.objectID);
-                Assert.IsNotNull(objectComponent);
-                this.pointClouds.Remove(objectComponent);
-            }
+                AugmentaPointCloud pcComponent = this.pointClouds.Find(pc => pc.objectID == exitedObject.objectID);
+                Assert.IsNotNull(pcComponent);
+                this.pointClouds.Remove(pcComponent);
 
-            Assert.IsNotNull(objectComponent);
-            this.onObjectLeave?.Invoke(this, objectComponent);
-            Destroy(objectComponent.gameObject);
+                this.onPointCloudLeft?.Invoke(this, pcComponent);
+                Destroy(pcComponent.gameObject);
+            }
         }
     }
 }

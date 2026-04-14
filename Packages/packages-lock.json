@@ -200,7 +200,7 @@
       },
       "url": "https://packages.unity.com"
     },
-    "tech.augmenta.augmentawebsocketunityclient": {
+    "tech.augmenta.unity-ws-client": {
       "version": "file:AugmentaUnityWSClient",
       "depth": 0,
       "source": "embedded",

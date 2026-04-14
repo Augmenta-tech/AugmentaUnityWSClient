@@ -36,6 +36,9 @@ namespace AugmentaWebsocketClient
         public bool usePolling = false;
     }
 
+    /// <summary>
+    /// This client is used to connect to an Augmenta server's WebSocket output and receive data from it.
+    /// </summary>
     public class AugmentaClient : MonoBehaviour
     {
         public string ipAddress
@@ -102,8 +105,19 @@ namespace AugmentaWebsocketClient
         private AugmentaWorld world;
 
         [Header("Events")]
+        /// <summary> 
+        /// Fired after the connection with the server has been established
+        /// </summary>
         public UnityEvent<AugmentaWorld> onWorldRegistered = new();
+        
+        /// <summary>
+        /// Fired when the connected server's world changes (i.e. hierarchy change)
+        /// </summary>
         public UnityEvent<AugmentaWorld> onWorldUpdated = new();
+
+        /// <summary>
+        /// Fired when the connection with the server is closed or lost
+        /// </summary>
         public UnityEvent<AugmentaWorld> onWorldUnregistered = new();
 
         [Header("Augmenta World Origin")]
@@ -205,7 +219,7 @@ namespace AugmentaWebsocketClient
             websocketClient.OnError += (sender, e) =>
             {
                 Debug.Log("Error! " + e.Message);
-            
+
                 isConnecting = false;
                 isConnected = false;
             };
@@ -214,7 +228,7 @@ namespace AugmentaWebsocketClient
             {
                 isConnecting = false;
                 isConnected = false;
-                
+
                 Debug.Log("Connection " + "ws://" + ipAddress + ":" + port + " closed. Reason: " + e.Reason);
             };
 
@@ -335,6 +349,7 @@ namespace AugmentaWebsocketClient
             options.axisTransform.flipY = protocolOptions.axisTransform.flipY;
             options.axisTransform.flipZ = protocolOptions.axisTransform.flipZ;
             options.axisTransform.coordinateSpace = protocolOptions.axisTransform.coordinateSpace;
+
             return options;
         }
     }
