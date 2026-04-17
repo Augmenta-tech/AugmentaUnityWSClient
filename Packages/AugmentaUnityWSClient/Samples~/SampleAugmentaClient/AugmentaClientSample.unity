@@ -371,7 +371,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MyAugmentaManager
   augmentaClient: {fileID: 1597585080}
-  customObjectPrefab: {fileID: 4508665158112160878, guid: f9af9fa7ff225fd4a87c9d653f5758d5, type: 3}
+  customClusterPrefab: {fileID: 4508665158112160878, guid: f9af9fa7ff225fd4a87c9d653f5758d5, type: 3}
+  customPointCloudPrefab: {fileID: 4508665158112160878, guid: d4870ef62741a824a8a66b4d66b8f629, type: 3}
 --- !u!4 &2133542028
 Transform:
   m_ObjectHideFlags: 0

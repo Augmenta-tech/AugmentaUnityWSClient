@@ -91,7 +91,6 @@ namespace AugmentaWebsocketClient
             
                 onPointCloudEntered.Invoke(this, pcComponent);
             }
-
         }
 
         private void OnObjectExited(Augmenta.GenericObject<Vector3> exitedObject)

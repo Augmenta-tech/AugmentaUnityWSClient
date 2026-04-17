@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AugmentaWebsocketClient;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 /// <summary>
 /// Listens to events fired by an Augmenta client, and create new custom GameObjects for each
@@ -24,7 +25,7 @@ public class MyAugmentaManager : MonoBehaviour
 
     private void OnEnable()
     {
-        Assert.NotNull(augmentaClient);
+        Assert.IsNotNull(augmentaClient);
 
         // Hook to the events fired by the clients
         augmentaClient.onWorldRegistered.AddListener(OnWorldRegistered);
