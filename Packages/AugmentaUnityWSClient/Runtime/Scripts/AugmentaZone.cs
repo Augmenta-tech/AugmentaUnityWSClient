@@ -11,13 +11,33 @@ namespace AugmentaWebsocketClient
 
         private GameObject pivot;
         private GameObject childrenContainer;
+
+        AugmentaShape shape;
+
+        /// <summary>
+        /// Number of objects present in the zone
+        /// </summary>
         public int presence { get { return nativeZone.presence; } set { nativeZone.presence = value; } }
-        public float density { get { return nativeZone.density; } }
+
+        /// <summary>
+        /// Reserved for future implementation
+        /// </summary>
+        private float density { get { return nativeZone.density; } }
+
+        /// <summary>
+        /// Value of the zone's slider
+        /// </summary>
         public float sliderValue { get { return nativeZone.sliderValue; } }
+
+        /// <summary>
+        /// Value of the zone's 2D pad
+        /// </summary>
         public Vector2 padXY { get { return new Vector2(nativeZone.padX, nativeZone.padY); } }
 
-        // TODO: Possible perf problem
-        public Vector3[] points { get { return nativeZone.points.ToArray(); } }
+        /// <summary>
+        /// The point cloud present in the zone. Note that this requires a specific setup on the server side
+        /// </summary>
+        public System.ArraySegment<Vector3> points { get { return nativeZone.points; } }
 
         public UnityEvent<AugmentaZone, int> onObjectsEntered = new();
         public UnityEvent<AugmentaZone, int> onObjectsExited = new();
@@ -38,6 +58,29 @@ namespace AugmentaWebsocketClient
         internal override void Setup(Augmenta.Container<Vector3> nativeContainer, AugmentaClient client)
         {
             base.Setup(nativeContainer, client);
+
+            switch (this.nativeZone.shape.shapeType)
+            {
+                case Augmenta.Shape<Vector3>.ShapeType.Box:
+                    this.shape = new AugmentaBoxShape();
+                    shape.Setup(this.nativeZone.shape);
+                    break;
+
+                case Augmenta.Shape<Vector3>.ShapeType.Sphere:
+                    this.shape = new AugmentaSphereShape();
+                    shape.Setup(this.nativeZone.shape);
+                    break;
+
+                case Augmenta.Shape<Vector3>.ShapeType.Cylinder:
+                    this.shape = new AugmentaCylinderShape();
+                    shape.Setup(this.nativeZone.shape);
+                    break;
+
+                default:
+                    Debug.Log("Unsupported zone shape: Unknown");
+                    break;
+            }
+
             this.nativeZone.onObjectsEntered += OnNativeZoneObjectsEntered;
             this.nativeZone.onObjectsExited += OnNativeZoneObjectsExited;
             this.nativeZone.onPresenceUpdated += OnNativeZonePresenceUpdated;
@@ -48,26 +91,23 @@ namespace AugmentaWebsocketClient
 
         protected override void SetTransformFromNativeContainer()
         {
+            this.pivot.transform.localPosition = this.nativeZone.position;
+            this.pivot.transform.localEulerAngles = this.nativeZone.rotation;
+
             switch (this.nativeZone.shape.shapeType)
             {
                 case Augmenta.Shape<Vector3>.ShapeType.Box:
                     Augmenta.BoxShape<Vector3> boxShape = this.nativeZone.shape as Augmenta.BoxShape<Vector3>;
 
-                    this.pivot.transform.localPosition = this.nativeZone.position;
-                    this.pivot.transform.localEulerAngles = this.nativeZone.rotation;
-
                     this.transform.localPosition = (boxShape.size / 2);
-
                     this.childrenContainer.transform.localPosition = -(boxShape.size / 2);
 
                     break;
 
                 case Augmenta.Shape<Vector3>.ShapeType.Sphere:
-                    Debug.Log("Unsupported zone shape: Sphere");
                     break;
 
                 case Augmenta.Shape<Vector3>.ShapeType.Cylinder:
-                    Debug.Log("Unsupported zone shape: Cylinder");
                     break;
 
                 default:
