@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace AugmentaWebsocketClient
 {
-    class AugmentaShape
+    public class AugmentaShape
     {
         protected Augmenta.Shape<Vector3> nativeShape;
 
@@ -12,21 +12,21 @@ namespace AugmentaWebsocketClient
         }
     }
 
-    class AugmentaBoxShape : AugmentaShape
+    public class AugmentaBoxShape : AugmentaShape
     {
         private Augmenta.BoxShape<Vector3> nativeBox { get { return nativeShape as Augmenta.BoxShape<Vector3>; } }
 
         public Vector3 size { get { return nativeBox.size; } }
     }
 
-    class AugmentaSphereShape : AugmentaShape
+    public class AugmentaSphereShape : AugmentaShape
     {
         private Augmenta.SphereShape<Vector3> nativeSphere { get { return nativeShape as Augmenta.SphereShape<Vector3>; } }
 
         public float radius { get { return nativeSphere.radius; } }
     }
 
-    class AugmentaCylinderShape : AugmentaShape
+    public class AugmentaCylinderShape : AugmentaShape
     {
         private Augmenta.CylinderShape<Vector3> nativeCylinder { get { return nativeShape as Augmenta.CylinderShape<Vector3>; } }
         
