@@ -19,7 +19,7 @@ public class MyAugmentaManager : MonoBehaviour
 
     private AugmentaScene augmentaScene;
 
-    private List<AugmentaZone> zones = new();
+    private List<MyZoneComponent> zones = new();
     private List<MyClusterComponent> clusters = new();
     private List<MyPointCloudComponent> pointClouds = new();
 
@@ -135,8 +135,9 @@ public class MyAugmentaManager : MonoBehaviour
         }
 
         // Create zones
-        GetAllZonesInSceneRecursive(augmentaScene, ref zones);
-        foreach (var zone in zones)
+        List<AugmentaZone> augmentaZones = new List<AugmentaZone>();
+        GetAllZonesInSceneRecursive(augmentaScene, ref augmentaZones);
+        foreach (var zone in augmentaZones)
         {
             var zoneGameObject = new GameObject(zone.name);
             var zoneComponent = zoneGameObject.AddComponent<MyZoneComponent>();
@@ -155,21 +156,24 @@ public class MyAugmentaManager : MonoBehaviour
         augmentaScene = null;
 
         // Clear clusters
-        foreach (Transform child in clusterRoot.transform)
+        foreach (var cluster in clusters)
         {
-            Destroy(child.gameObject);
+            cluster.Shutdown();
+            Destroy(cluster.gameObject);
         }
 
         // Clear point clouds
-        foreach (Transform child in pointCloudsRoot.transform)
+        foreach (var pc in pointClouds)
         {
-            Destroy(child.gameObject);
+            pc.Shutdown();
+            Destroy(pc.gameObject);
         }
 
         // Clear zones
-        foreach (Transform child in zonesRoot.transform)
+        foreach (var zone in zones)
         {
-            Destroy(child.gameObject);
+            zone.Shutdown();
+            Destroy(zone.gameObject);
         }
         zones.Clear();
     }
@@ -188,8 +192,8 @@ public class MyAugmentaManager : MonoBehaviour
         int idx = clusters.FindIndex((MyClusterComponent comp) => { return comp.augmentaCluster == augmentaCluster; });
         Assert.AreNotEqual(idx, -1);
         MyClusterComponent comp = clusters[idx];
-        Destroy(comp.gameObject);
         clusters.RemoveAt(idx);
+        Destroy(comp.gameObject);
     }
 
     private void CreateCustomPointCloud(AugmentaPointCloud augmentaPC)
@@ -204,8 +208,9 @@ public class MyAugmentaManager : MonoBehaviour
     private void RemoveCustomPointCloud(AugmentaPointCloud augmentaPC)
     {
         int idx = pointClouds.FindIndex((MyPointCloudComponent comp) => { return comp.augmentaPointCloud == augmentaPC; });
+        Assert.AreNotEqual(idx, -1);
         MyPointCloudComponent comp = pointClouds[idx];
-        Destroy(comp.gameObject);
         pointClouds.RemoveAt(idx);
+        Destroy(comp.gameObject);
     }
 }

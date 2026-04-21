@@ -20,6 +20,17 @@ public class MyZoneComponent : MonoBehaviour
         augmentaZone.onPointCloudUpdated.AddListener(OnZonePointCloudUpdated);
     }
 
+    public void Shutdown()
+    {
+        augmentaZone.onObjectsEntered.RemoveListener(OnZoneObjectsEntered);
+        augmentaZone.onObjectsExited.RemoveListener(OnZoneObjectsExited);
+        augmentaZone.onSliderUpdated.RemoveListener(OnZoneSliderUpdated);
+        augmentaZone.onXYPadUpdated.RemoveListener(OnZoneXYPadUpdated);
+        augmentaZone.onPresenceUpdated.RemoveListener(OnZonePresenceUpdated);
+        augmentaZone.onPointCloudUpdated.RemoveListener(OnZonePointCloudUpdated);
+        augmentaZone = null;
+    }
+
     private void OnZoneObjectsEntered(AugmentaZone zone, int count)
     {
         Debug.Log("Objects entered zone: " + count);

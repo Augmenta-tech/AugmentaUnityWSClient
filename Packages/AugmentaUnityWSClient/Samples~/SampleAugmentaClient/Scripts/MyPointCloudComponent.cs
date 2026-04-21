@@ -41,6 +41,14 @@ public class MyPointCloudComponent : MonoBehaviour
         augmentaPointCloud.onLeave.AddListener(OnObjectLeave);
     }
 
+    public void Shutdown()
+    {
+        augmentaPointCloud.onEnter.RemoveListener(OnObjectEnter);
+        augmentaPointCloud.onUpdate.RemoveListener(OnObjectUpdate);
+        augmentaPointCloud.onLeave.RemoveListener(OnObjectLeave);
+        augmentaPointCloud = null;
+    }
+
     void OnObjectUpdate(AugmentaObject obj)
     {
         Assert.AreEqual(obj, augmentaPointCloud);

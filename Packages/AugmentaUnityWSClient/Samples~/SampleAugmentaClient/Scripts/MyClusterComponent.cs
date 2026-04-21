@@ -43,6 +43,14 @@ public class MyClusterComponent : MonoBehaviour
         transform.localScale = augmentaCluster.boxSize;
     }
 
+    public void Shutdown()
+    {
+        augmentaCluster.onEnter.RemoveListener(OnObjectEnter);
+        augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
+        augmentaCluster.onLeave.RemoveListener(OnObjectLeave);
+        augmentaCluster = null;
+    }
+
     private void OnObjectUpdate(AugmentaObject obj)
     {
         Assert.AreEqual(obj, augmentaCluster);
