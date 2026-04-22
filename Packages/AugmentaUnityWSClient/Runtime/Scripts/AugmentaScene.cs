@@ -101,7 +101,7 @@ namespace AugmentaWebsocketClient
                 Assert.IsNotNull(clusterComponent);
                 this.clusters.Remove(clusterComponent);
                 
-                this.onClusterLeft?.Invoke(this, clusterComponent);
+                this.onClusterLeft.Invoke(this, clusterComponent);
                 Destroy(clusterComponent.gameObject);
 
             }
@@ -111,7 +111,7 @@ namespace AugmentaWebsocketClient
                 Assert.IsNotNull(pcComponent);
                 this.pointClouds.Remove(pcComponent);
 
-                this.onPointCloudLeft?.Invoke(this, pcComponent);
+                this.onPointCloudLeft.Invoke(this, pcComponent);
                 Destroy(pcComponent.gameObject);
             }
         }

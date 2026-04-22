@@ -64,19 +64,19 @@ namespace AugmentaWebsocketClient
         {
             Assert.AreEqual(nativeObject, this.nativeObject);
             ApplyNativeObjectTransform();
-            onUpdate?.Invoke(this);
+            onUpdate.Invoke(this);
         }
 
         private void OnNativeObjectEntered(Augmenta.GenericObject<Vector3> nativeObject)
         {
             Assert.AreEqual(nativeObject, this.nativeObject);
-            onEnter?.Invoke(this);
+            onEnter.Invoke(this);
         }
 
         private void OnNativeObjectLeft(Augmenta.GenericObject<Vector3> nativeObject)
         {
             Assert.AreEqual(nativeObject, this.nativeObject);
-            onLeave?.Invoke(this);
+            onLeave.Invoke(this);
         }
 
         public AugmentaScene GetParentScene()

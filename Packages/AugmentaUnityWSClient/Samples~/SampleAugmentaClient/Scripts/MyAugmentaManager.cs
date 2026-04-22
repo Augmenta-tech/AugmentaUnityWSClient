@@ -135,13 +135,14 @@ public class MyAugmentaManager : MonoBehaviour
         }
 
         // Create zones
-        List<AugmentaZone> augmentaZones = new List<AugmentaZone>();
+        List<AugmentaZone> augmentaZones = new();
         GetAllZonesInSceneRecursive(augmentaScene, ref augmentaZones);
         foreach (var zone in augmentaZones)
         {
             var zoneGameObject = new GameObject(zone.name);
             var zoneComponent = zoneGameObject.AddComponent<MyZoneComponent>();
             zoneComponent.Initialize(zone);
+            zones.Add(zoneComponent);
 
             zoneGameObject.transform.parent = zonesRoot.transform;
         }
@@ -161,6 +162,7 @@ public class MyAugmentaManager : MonoBehaviour
             cluster.Shutdown();
             Destroy(cluster.gameObject);
         }
+        clusters.Clear();
 
         // Clear point clouds
         foreach (var pc in pointClouds)
@@ -168,6 +170,7 @@ public class MyAugmentaManager : MonoBehaviour
             pc.Shutdown();
             Destroy(pc.gameObject);
         }
+        pointClouds.Clear();
 
         // Clear zones
         foreach (var zone in zones)
@@ -191,8 +194,11 @@ public class MyAugmentaManager : MonoBehaviour
     {
         int idx = clusters.FindIndex((MyClusterComponent comp) => { return comp.augmentaCluster == augmentaCluster; });
         Assert.AreNotEqual(idx, -1);
+        
         MyClusterComponent comp = clusters[idx];
+        comp.Shutdown();
         clusters.RemoveAt(idx);
+        
         Destroy(comp.gameObject);
     }
 
@@ -210,6 +216,8 @@ public class MyAugmentaManager : MonoBehaviour
         int idx = pointClouds.FindIndex((MyPointCloudComponent comp) => { return comp.augmentaPointCloud == augmentaPC; });
         Assert.AreNotEqual(idx, -1);
         MyPointCloudComponent comp = pointClouds[idx];
+        comp.Shutdown();
+
         pointClouds.RemoveAt(idx);
         Destroy(comp.gameObject);
     }
