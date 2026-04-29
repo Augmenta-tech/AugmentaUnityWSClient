@@ -16,8 +16,9 @@ namespace AugmentaWebsocketClient
         public delegate void OnUpdateEvent(AugmentaContainer augmentaContainer);
         public event OnUpdateEvent onUpdate;
 
-        [Header("Debug")]
-        public bool drawDebug = true;
+        [Header("Editor")]
+        [Tooltip("Show gizmos in Scene Mode")]
+        public bool showGizmos = true;
 
         internal virtual void Setup(Augmenta.Container<Vector3> nativeContainer, AugmentaClient parentClientComponent)
         {
@@ -149,6 +150,15 @@ namespace AugmentaWebsocketClient
         public ref List<AugmentaContainer> GetChildrenContainers()
         {
             return ref childrenContainers;
+        }
+
+        public virtual void SetShowGizmos(bool show)
+        {
+            showGizmos = show;
+            foreach (var child in childrenContainers)
+            {
+                child.SetShowGizmos(show);
+            }
         }
     }
 }

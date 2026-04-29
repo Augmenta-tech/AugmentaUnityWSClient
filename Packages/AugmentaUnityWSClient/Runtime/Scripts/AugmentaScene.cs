@@ -66,6 +66,11 @@ namespace AugmentaWebsocketClient
 
         private void OnDrawGizmos()
         {
+            if (!showGizmos)
+            {
+                return;
+            }
+
             Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, this.transform.lossyScale);
             Gizmos.color = Color.white * .5f;
             Gizmos.DrawWireCube(Vector3.zero, this.nativeScene.size);
@@ -88,7 +93,7 @@ namespace AugmentaWebsocketClient
                 pcComponent.transform.SetParent(this.objectsContainer.transform, false);
                 pcComponent.Initialize(enteredObject, this.parentClientComponent.GetWorld(), this);
                 this.pointClouds.Add(pcComponent);
-            
+
                 onPointCloudEntered.Invoke(this, pcComponent);
             }
         }
@@ -100,7 +105,7 @@ namespace AugmentaWebsocketClient
                 AugmentaCluster clusterComponent = this.clusters.Find(cluster => cluster.objectID == exitedObject.objectID);
                 Assert.IsNotNull(clusterComponent);
                 this.clusters.Remove(clusterComponent);
-                
+
                 this.onClusterLeft.Invoke(this, clusterComponent);
                 Destroy(clusterComponent.gameObject);
 
@@ -113,6 +118,20 @@ namespace AugmentaWebsocketClient
 
                 this.onPointCloudLeft.Invoke(this, pcComponent);
                 Destroy(pcComponent.gameObject);
+            }
+        }
+
+        public override void SetShowGizmos(bool show)
+        {
+            base.SetShowGizmos(show);
+            foreach (var cluster in this.clusters)
+            {
+                cluster.showGizmos = show;
+            }
+
+            foreach(var pc in this.pointClouds)
+            {
+                pc.showGizmos = show;
             }
         }
     }

@@ -16,7 +16,7 @@ namespace AugmentaWebsocketClient
 
         void OnDrawGizmos()
         {
-            if (!drawDebug || nativeObject == null)
+            if (!showGizmos || nativeObject == null)
             {
                 return;
             }

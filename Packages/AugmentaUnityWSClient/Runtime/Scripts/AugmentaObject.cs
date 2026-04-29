@@ -28,8 +28,9 @@ namespace AugmentaWebsocketClient
 
         public int objectID { get { return nativeObject.objectID; } }
 
-        [Header("Debug")]
-        public bool drawDebug = true;
+        [Header("Editor")]
+        [Tooltip("Show gizmos in Scene Mode")]
+        public bool showGizmos = true;
 
         private void ApplyNativeObjectTransform()
         {

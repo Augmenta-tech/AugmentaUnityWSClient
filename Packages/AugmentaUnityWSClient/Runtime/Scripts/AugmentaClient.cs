@@ -92,6 +92,11 @@ namespace AugmentaWebsocketClient
         public bool centerY = false;
         public bool centerZ = false;
 
+        [Header("Editor")]
+        [Tooltip("Show received data's gizmos in Scene Mode")]
+        public bool showGizmos = true;
+        private bool areGizmosShown = true;
+
         private WebSocket websocketClient;
         private AugmentaUnityClient augmentaClient;
 
@@ -186,6 +191,12 @@ namespace AugmentaWebsocketClient
 
             if (IsWorldRegistered())
                 UpdateSceneCenter();
+
+            if (showGizmos != areGizmosShown)
+            {
+                world.SetShowGizmos(showGizmos);
+                areGizmosShown = showGizmos;
+            }
         }
 
         private void InitWebSocketClient()
@@ -273,6 +284,7 @@ namespace AugmentaWebsocketClient
         {
             AugmentaWorld worldComponent = new GameObject().AddComponent<AugmentaWorld>();
             worldComponent.Setup(worldContainer, this);
+            worldComponent.SetShowGizmos(showGizmos);
             worldComponent.transform.SetParent(this.transform, false);
             worldContainer.onUpdate += OnWorldContainerUpdated;
 
