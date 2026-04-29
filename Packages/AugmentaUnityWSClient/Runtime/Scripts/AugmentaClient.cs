@@ -41,34 +41,6 @@ namespace AugmentaWebsocketClient
     /// </summary>
     public class AugmentaClient : MonoBehaviour
     {
-        public string ipAddress
-        {
-            get => _ipAddress;
-            set
-            {
-                _ipAddress = value;
-                if (websocketClient != null)
-                {
-                    websocketClient.Close();
-                    websocketClient = null;
-                }
-            }
-        }
-
-        public int port
-        {
-            get => _port;
-            set
-            {
-                _port = value;
-                if (websocketClient != null)
-                {
-                    websocketClient.Close();
-                    websocketClient = null;
-                }
-            }
-        }
-
         WebSocket websocketClient;
         AugmentaUnityClient augmentaClient;
 
@@ -86,8 +58,14 @@ namespace AugmentaWebsocketClient
 
         [Header("Connection")]
         public string clientName = "Unity";
-        [SerializeField] string _ipAddress = "127.0.0.1";
-        [SerializeField] int _port = 6060;
+
+        [Delayed]
+        public string ipAddress = "127.0.0.1";
+        private string activeIPAddress;
+
+        [Delayed]
+        public int port = 6060;
+        private int activePort;
 
         [Space]
         public bool autoReconnect = true;
@@ -109,7 +87,7 @@ namespace AugmentaWebsocketClient
         /// Fired after the connection with the server has been established
         /// </summary>
         public UnityEvent<AugmentaWorld> onWorldRegistered = new();
-        
+
         /// <summary>
         /// Fired when the connected server's world changes (i.e. hierarchy change)
         /// </summary>
@@ -152,6 +130,12 @@ namespace AugmentaWebsocketClient
 
         void Update()
         {
+            if (activeIPAddress != ipAddress || activePort != port)
+            {
+                websocketClient.Close();
+                websocketClient = null;
+            }
+
             if (!isConnected && world != null)
             {
                 onWorldUnregistered.Invoke(world);
@@ -206,12 +190,16 @@ namespace AugmentaWebsocketClient
 
         private void InitWebSocketClient()
         {
-            websocketClient = new WebSocket("ws://" + ipAddress + ":" + port);
+            string serverURL = "ws://" + ipAddress + ":" + port;
+            websocketClient = new WebSocket(serverURL);
+
             websocketClient.OnOpen += (sender, e) =>
             {
                 isConnecting = false;
                 isConnected = true;
-                Debug.Log("Connection " + "ws://" + ipAddress + ":" + port + " opened !");
+                
+                Debug.Log("Connection to " + serverURL + " open");
+
                 augmentaClient.options = GetProtocolOptions();
                 SendRegisterMessage();
             };
@@ -229,7 +217,7 @@ namespace AugmentaWebsocketClient
                 isConnecting = false;
                 isConnected = false;
 
-                Debug.Log("Connection " + "ws://" + ipAddress + ":" + port + " closed. Reason: " + e.Reason);
+                Debug.Log("Connection " + serverURL + " closed. Reason: " + e.Reason);
             };
 
             websocketClient.OnMessage += (sender, e) =>
@@ -241,6 +229,9 @@ namespace AugmentaWebsocketClient
 
                 wsMessages.Add(e);
             };
+
+            activeIPAddress = ipAddress;
+            activePort = port;
         }
 
         private void SendRegisterMessage()
