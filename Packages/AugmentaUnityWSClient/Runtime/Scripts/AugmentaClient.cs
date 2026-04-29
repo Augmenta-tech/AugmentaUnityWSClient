@@ -7,33 +7,26 @@ using static Augmenta.ProtocolOptions;
 
 namespace AugmentaWebsocketClient
 {
-    // Duplicate protocol options classes to make them serializable
-    // If you know of a better way to do this, please ping us :-)
     [Serializable]
-    public class SerializableAxisTransform
+    public class UserEditableProtocolOptions
     {
-        public Augmenta.AxisTransform.AxisMode axis = Augmenta.AxisTransform.AxisMode.YUpLeftHanded;
-        public Augmenta.AxisTransform.OriginMode origin = Augmenta.AxisTransform.OriginMode.BottomLeft;
-        public bool flipX = false;
-        public bool flipY = false;
-        public bool flipZ = false;
-        public Augmenta.AxisTransform.CoordinateSpace coordinateSpace = Augmenta.AxisTransform.CoordinateSpace.Relative;
-    }
-
-    [Serializable]
-    public class SerializableProtocolOptions
-    {
-        [HideInInspector] public Augmenta.ProtocolVersion version = Augmenta.ProtocolVersion.Latest;
-        public List<string> tags = new();
-        public int downSample = 1;
+        [Tooltip("Send the full scene point cloud")]
         public bool streamScenePointCloud = true;
+
+        [Tooltip("Send individual clusters (tracked objects)")]
         public bool streamClusters = true;
+
+        [Tooltip("Send the points that make up each cluster")]
         public bool streamClusterPoints = true;
+
+        [Tooltip("Send the points contained in each zone")]
         public bool streamZonePoints = false;
-        [HideInInspector] public RotationMode boxRotationMode = RotationMode.Degrees;
-        [HideInInspector] public SerializableAxisTransform axisTransform;
-        [HideInInspector] public bool useCompression = true;
-        public bool usePolling = false;
+
+        [Tooltip("Tags the server will use to filter what to send")]
+        public List<string> tags = new();
+
+        [Tooltip("Downsample the number of points sent by the server. 1 = no downsampling, 2 = send half the points, etc.")]
+        public int downSample = 1;
     }
 
     /// <summary>
@@ -41,15 +34,6 @@ namespace AugmentaWebsocketClient
     /// </summary>
     public class AugmentaClient : MonoBehaviour
     {
-        WebSocket websocketClient;
-        AugmentaUnityClient augmentaClient;
-
-        float lastUpdateTime;
-        float lastConnectTime;
-        float lastMessageTime;
-
-        public SerializableProtocolOptions protocolOptions;
-
         //[Header("Spawn")]
         //Should be linked in script default but not needed in inspector since they should not be changed
         [HideInInspector] public GameObject scenePrefab;
@@ -57,30 +41,34 @@ namespace AugmentaWebsocketClient
         [HideInInspector] public GameObject objectPrefab;
 
         [Header("Connection")]
+        [Tooltip("A human-readable name that will appear on the server to identify this client")]
         public string clientName = "Unity";
 
-        [Delayed]
+        [Delayed, Tooltip("Server IP address")]
         public string ipAddress = "127.0.0.1";
         private string activeIPAddress;
 
-        [Delayed]
+        [Delayed, Tooltip("Server port")]
         public int port = 6060;
         private int activePort;
 
         [Space]
+
+        [Tooltip("If on, this client will keep attempting to reconnect to the server when the connection is lost")]
         public bool autoReconnect = true;
+
+        [Tooltip("The time to wait before attempting to reconnect after the connection was lost (in seconds)")]
         public float autoReconnectPeriod = 1;
 
         [Space]
+        // TODO: All that should probably be readonly. Remove from the inspector ?
         public bool isConnected = false;
         private bool isConnecting = false;
         public bool receivingData = false;
         bool hasReceivedSincePolling = false;
 
-        bool isProcessing;
-        List<MessageEventArgs> wsMessages;
-
-        private AugmentaWorld world;
+        [Header("WebSocket options")]
+        public UserEditableProtocolOptions options;
 
         [Header("Events")]
         /// <summary> 
@@ -103,6 +91,18 @@ namespace AugmentaWebsocketClient
         public bool centerX = false;
         public bool centerY = false;
         public bool centerZ = false;
+
+        private WebSocket websocketClient;
+        private AugmentaUnityClient augmentaClient;
+
+        private float lastUpdateTime;
+        private float lastConnectTime;
+        private float lastMessageTime;
+
+        private bool isProcessing;
+        private List<MessageEventArgs> wsMessages;
+
+        private AugmentaWorld world;
 
         public AugmentaWorld GetWorld() { return world; }
 
@@ -197,7 +197,7 @@ namespace AugmentaWebsocketClient
             {
                 isConnecting = false;
                 isConnected = true;
-                
+
                 Debug.Log("Connection to " + serverURL + " open");
 
                 augmentaClient.options = GetProtocolOptions();
@@ -324,22 +324,22 @@ namespace AugmentaWebsocketClient
         private Augmenta.ProtocolOptions GetProtocolOptions()
         {
             Augmenta.ProtocolOptions options = new();
-            options.version = protocolOptions.version;
-            options.tags = new List<string>(protocolOptions.tags);
-            options.downSample = protocolOptions.downSample;
-            options.streamClouds = protocolOptions.streamScenePointCloud;
-            options.streamClusters = protocolOptions.streamClusters;
-            options.streamClusterPoints = protocolOptions.streamClusterPoints;
-            options.streamZonePoints = protocolOptions.streamZonePoints;
-            options.boxRotationMode = protocolOptions.boxRotationMode;
-            options.useCompression = protocolOptions.useCompression;
-            options.usePolling = protocolOptions.usePolling;
-            options.axisTransform.axis = protocolOptions.axisTransform.axis;
-            options.axisTransform.origin = protocolOptions.axisTransform.origin;
-            options.axisTransform.flipX = protocolOptions.axisTransform.flipX;
-            options.axisTransform.flipY = protocolOptions.axisTransform.flipY;
-            options.axisTransform.flipZ = protocolOptions.axisTransform.flipZ;
-            options.axisTransform.coordinateSpace = protocolOptions.axisTransform.coordinateSpace;
+            options.version = Augmenta.ProtocolVersion.Latest;
+            options.tags = new List<string>(this.options.tags);
+            options.downSample = this.options.downSample;
+            options.streamClouds = this.options.streamScenePointCloud;
+            options.streamClusters = this.options.streamClusters;
+            options.streamClusterPoints = this.options.streamClusterPoints;
+            options.streamZonePoints = this.options.streamZonePoints;
+            options.boxRotationMode = RotationMode.Degrees;
+            options.useCompression = true;
+            options.usePolling = false;
+            options.axisTransform.axis = Augmenta.AxisTransform.AxisMode.YUpLeftHanded;
+            options.axisTransform.origin = Augmenta.AxisTransform.OriginMode.BottomLeft;
+            options.axisTransform.flipX = false;
+            options.axisTransform.flipY = false;
+            options.axisTransform.flipZ = false;
+            options.axisTransform.coordinateSpace = Augmenta.AxisTransform.CoordinateSpace.Relative;
 
             return options;
         }
