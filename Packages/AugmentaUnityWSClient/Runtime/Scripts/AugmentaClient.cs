@@ -217,18 +217,20 @@ namespace AugmentaWebsocketClient
 
             websocketClient.OnError += (sender, e) =>
             {
-                Debug.Log("Error! " + e.Message);
+                Debug.Log("Connection error: " + e.Message);
 
+                wsMessages.Clear();
                 isConnecting = false;
                 isConnected = false;
             };
 
             websocketClient.OnClose += (sender, e) =>
             {
+                wsMessages.Clear();
                 isConnecting = false;
                 isConnected = false;
 
-                Debug.Log("Connection " + serverURL + " closed. Reason: " + e.Reason);
+                Debug.Log("Connection to" + serverURL + " closed: " + e.Reason);
             };
 
             websocketClient.OnMessage += (sender, e) =>
