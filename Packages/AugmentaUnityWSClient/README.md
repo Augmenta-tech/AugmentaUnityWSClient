@@ -21,7 +21,7 @@ Newever versions (1.6.0+) can also be used a [simulator](https://tech.docs.augme
 
 - Window > Package Manager
 - Click on the “+” on the top left > Install package from git URL…
-- Copy the URL: https://github.com/Augmenta-tech/AugmentaUnityWebsocket.git?path=/Packages/AugmentaUnityWSClient#new-structure
+- Copy the URL: https://github.com/Augmenta-tech/AugmentaUnityWebsocket.git?path=/Packages/AugmentaUnityWSClient
 - On the right > Install
 - You can now find the package in your project's Packages directory
 
