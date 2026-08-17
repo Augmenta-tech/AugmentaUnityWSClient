@@ -30,6 +30,11 @@ The packages comes with a sample project that can you can study or reuse to lear
 
 In the Package Manager, select the package, and go to the "Samples" tab. On the right, you can "import" the sample to copy it to your Project.
 
+## Developping
+This repository contains the package itself as well as its dev environment. If you're planning on modifying the package and/or its samples:
+- Enable git symlink support. (`git config core.symlinks` should print `true`)
+- Clone the project
+
 ## Dependencies
 ### Augmenta SDK
 This package makes use of the [Augmenta Client C# SDK](https://github.com/Augmenta-tech/AugmentaClientSDK-CS).  
