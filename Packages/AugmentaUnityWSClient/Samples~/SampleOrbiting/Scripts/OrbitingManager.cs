@@ -24,6 +24,10 @@ public class OrbitingManager : MonoBehaviour
         new(1f, .420f, .353f),    // Ember red
     };
 
+    [Tooltip("Maximum distance, in meters, at which an entering cluster revives a system that is " +
+             "disappearing instead of spawning a new one on top of it. Absorbs tracking flicker.")]
+    public float reviveDistance = 1f;
+
     // Walking the palette by a stride coprime with its length keeps consecutive cluster ids on
     // clearly different colors, instead of on the two neighbouring shades of the same one
     private const int paletteStride = 3;
@@ -34,9 +38,17 @@ public class OrbitingManager : MonoBehaviour
 
     private List<OrbitingCluster> clusters = new();
 
+    // Systems whose cluster has left, kept alive while they fade out so a flickering cluster coming
+    // back nearby can take one over instead of spawning a second system on top of it
+    private List<OrbitingCluster> disappearingClusters = new();
+
     private void OnEnable()
     {
         Assert.IsNotNull(augmentaClient);
+
+        // Created before hooking to the events, the first clusters are parented to it
+        clusterRoot = new GameObject("Clusters");
+        clusterRoot.transform.parent = transform;
 
         // Hook to the events fired by the clients
         augmentaClient.onWorldRegistered.AddListener(OnWorldRegistered);
@@ -49,9 +61,22 @@ public class OrbitingManager : MonoBehaviour
             // because we won't receive the "Registered" event later
             OnWorldRegistered(augmentaClient.GetWorld());
         }
+    }
 
-        clusterRoot = new GameObject("Clusters");
-        clusterRoot.transform.parent = transform;
+    private void Update()
+    {
+        // Destroy the systems that finished disappearing. Until then they stay available for a
+        // revival, so a cluster flickering back does not spawn a second system on the same spot.
+        for (int i = disappearingClusters.Count - 1; i >= 0; --i)
+        {
+            if (!disappearingClusters[i].hasDisappeared)
+            {
+                continue;
+            }
+
+            Destroy(disappearingClusters[i].gameObject);
+            disappearingClusters.RemoveAt(i);
+        }
     }
 
     private void OnDisable()
@@ -59,6 +84,18 @@ public class OrbitingManager : MonoBehaviour
         if (augmentaScene)
         {
             ShutdownScene();
+        }
+
+        // Nothing left to run the fade out, so drop everything right away
+        foreach (var cluster in disappearingClusters)
+        {
+            Destroy(cluster.gameObject);
+        }
+        disappearingClusters.Clear();
+
+        if (clusterRoot)
+        {
+            Destroy(clusterRoot);
         }
 
         augmentaClient.onWorldRegistered.RemoveListener(OnWorldRegistered);
@@ -116,22 +153,59 @@ public class OrbitingManager : MonoBehaviour
         augmentaScene.onClusterLeft.RemoveListener(OnClusterLeftScene);
         augmentaScene = null;
 
-        // Clear clusters
+        // Fade the clusters out rather than destroying them, so a reconnection does not blink the
+        // whole sky out. BeginDisappear unbinds them from their Augmenta cluster, which the client
+        // destroys right after this.
         foreach (var cluster in clusters)
         {
-            cluster.Shutdown();
-            Destroy(cluster.gameObject);
+            cluster.BeginDisappear();
+            disappearingClusters.Add(cluster);
         }
         clusters.Clear();
     }
 
     private void CreateCustomCluster(AugmentaCluster augmentaCluster)
     {
+        OrbitingCluster revived = FindClusterToRevive(augmentaCluster);
+        if (revived)
+        {
+            // Keeps its own color and planets, so a flicker only shows as a dip in size
+            revived.Revive(augmentaCluster);
+            disappearingClusters.Remove(revived);
+            clusters.Add(revived);
+            return;
+        }
+
         GameObject newObject = Instantiate(orbitingClusterPrefab, clusterRoot.transform);
 
         OrbitingCluster clusterComponent = newObject.GetComponent<OrbitingCluster>();
         clusterComponent.Initialize(augmentaCluster, GetClusterColor(augmentaCluster.objectID));
         clusters.Add(clusterComponent);
+    }
+
+    /// <summary>
+    /// Returns the disappearing system closest to the entering cluster, if one is close enough to
+    /// be the same tracking coming back. Ids are not compared: a flickering tracking usually comes
+    /// back under a new id.
+    /// </summary>
+    private OrbitingCluster FindClusterToRevive(AugmentaCluster augmentaCluster)
+    {
+        Vector3 position = OrbitingCluster.GetFollowPosition(augmentaCluster);
+
+        OrbitingCluster closest = null;
+        float closestDistance = reviveDistance;
+
+        foreach (var cluster in disappearingClusters)
+        {
+            float distance = Vector3.Distance(cluster.transform.position, position);
+            if (distance <= closestDistance)
+            {
+                closest = cluster;
+                closestDistance = distance;
+            }
+        }
+
+        return closest;
     }
 
     private Color GetClusterColor(int objectID)
@@ -151,9 +225,10 @@ public class OrbitingManager : MonoBehaviour
         Assert.AreNotEqual(idx, -1);
         
         OrbitingCluster comp = clusters[idx];
-        comp.Shutdown();
         clusters.RemoveAt(idx);
-        
-        Destroy(comp.gameObject);
+
+        // Kept around until it has fully faded out, and destroyed by Update then
+        comp.BeginDisappear();
+        disappearingClusters.Add(comp);
     }
 }

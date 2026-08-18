@@ -62,9 +62,19 @@ public class OrbitingCluster : MonoBehaviour
     [Tooltip("Approximate time taken to catch up with the cluster position and size. Higher is smoother, but lags more.")]
     public float followSmoothTime = .2f;
 
+    [Header("Appearance")]
+    [Tooltip("Time taken by a system to spiral out to its full size when its cluster enters, in seconds")]
+    public float appearDuration = .8f;
+    [Tooltip("Time taken by a system to spiral back into its core and vanish when its cluster leaves, in seconds")]
+    public float disappearDuration = 1f;
+
     private struct Sphere
     {
         public Transform transform;
+        public Transform planet;
+        public TrailRenderer trail;
+        public Vector3 planetScale;
+        public float trailBaseWidth;
         public float angle;
         public float speed;
         public float radiusFactor;
@@ -88,8 +98,26 @@ public class OrbitingCluster : MonoBehaviour
     private Vector3 followVelocity;
     private float radiusVelocity;
 
+    // 0 = fully gone, 1 = fully grown. Everything visual is scaled by it, so nothing ever pops.
+    private float presence;
+    private float presenceTarget;
+
     // Reused for every per-instance color, to avoid leaking a material clone per renderer
     private MaterialPropertyBlock propertyBlock;
+
+    /// <summary>
+    /// True once the system has finished disappearing, and can be destroyed.
+    /// </summary>
+    public bool hasDisappeared => presenceTarget <= 0f && presence <= 0f;
+
+    /// <summary>
+    /// Position an orbiting system takes to follow the given cluster: the bottom of its bounding box.
+    /// </summary>
+    public static Vector3 GetFollowPosition(AugmentaCluster augmentaCluster)
+    {
+        // The cluster position is the center of its box, so go down half its height to orbit at floor level
+        return augmentaCluster.transform.position - augmentaCluster.transform.up * (augmentaCluster.boxSize.y * .5f);
+    }
 
     public void Initialize(AugmentaCluster augmentaCluster, Color clusterColor)
     {
@@ -100,6 +128,9 @@ public class OrbitingCluster : MonoBehaviour
         propertyBlock = new MaterialPropertyBlock();
         starPulsePhase = Random.Range(0f, Mathf.PI * 2f);
 
+        presence = 0f;
+        presenceTarget = 1f;
+
         ReadClusterTargets();
 
         // Start on the cluster
@@ -109,12 +140,45 @@ public class OrbitingCluster : MonoBehaviour
         SetupStar();
         SetupLight();
         SpawnSpheres();
+
+        // Nothing must be visible on the first frame, the system grows from there
+        ApplyPresence(0f);
     }
 
     public void Shutdown()
     {
+        if (!augmentaCluster)
+        {
+            return;
+        }
+
         augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
         augmentaCluster = null;
+    }
+
+    /// <summary>
+    /// Starts the disappearance. The system unbinds from its cluster but keeps running, frozen on
+    /// its last known position, until it has fully spiraled back into its core.
+    /// </summary>
+    public void BeginDisappear()
+    {
+        Shutdown();
+        presenceTarget = 0f;
+    }
+
+    /// <summary>
+    /// Re-binds a disappearing system to a new cluster and grows it back from its current size,
+    /// keeping its colors and planets so a flickering tracking does not restart the system.
+    /// </summary>
+    public void Revive(AugmentaCluster augmentaCluster)
+    {
+        this.augmentaCluster = augmentaCluster;
+        augmentaCluster.onUpdate.AddListener(OnObjectUpdate);
+
+        presenceTarget = 1f;
+
+        // Glide to the new cluster instead of snapping on it
+        ReadClusterTargets();
     }
 
     private void Update()
@@ -124,6 +188,14 @@ public class OrbitingCluster : MonoBehaviour
             return;
         }
 
+        // MoveTowards, not SmoothDamp: the fade must reach exactly 0 in a known time, the owner
+        // destroys the system on that
+        float presenceDuration = presenceTarget > presence ? appearDuration : disappearDuration;
+        presence = presenceDuration > 0f
+            ? Mathf.MoveTowards(presence, presenceTarget, Time.deltaTime / presenceDuration)
+            : presenceTarget;
+        float eased = Mathf.SmoothStep(0f, 1f, presence);
+
         // Ease towards clusters instead of snapping
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref followVelocity, followSmoothTime);
         baseRadius = Mathf.SmoothDamp(baseRadius, targetRadius, ref radiusVelocity, followSmoothTime);
@@ -132,14 +204,14 @@ public class OrbitingCluster : MonoBehaviour
         {
             spheres[i].angle += spheres[i].speed * Time.deltaTime;
 
-            float radius = baseRadius * spheres[i].radiusFactor;
+            // Planets spiral out of the star as the system appears, and back into it as it leaves
+            float radius = baseRadius * spheres[i].radiusFactor * eased;
             float rad = spheres[i].angle * Mathf.Deg2Rad;
             Vector3 onRing = new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)) * radius;
             spheres[i].transform.localPosition = spheres[i].orbitRotation * onRing;
         }
 
-        UpdateStar();
-        UpdateLight();
+        ApplyPresence(eased);
     }
 
     private void OnObjectUpdate(AugmentaObject obj)
@@ -150,12 +222,34 @@ public class OrbitingCluster : MonoBehaviour
 
     private void ReadClusterTargets()
     {
-        Vector3 boxSize = augmentaCluster.boxSize;
+        targetPosition = GetFollowPosition(augmentaCluster);
+        targetRadius = Mathf.Max(augmentaCluster.boxSize.x, augmentaCluster.boxSize.z) * .5f * radiusScale;
+    }
 
-        // The cluster position is the center of its box, so go down half its height to orbit at floor level
-        targetPosition = augmentaCluster.transform.position - augmentaCluster.transform.up * (boxSize.y * .5f);
+    /// <summary>
+    /// Scales everything that has a size or a brightness by the eased presence, so the system grows
+    /// out of nothing and shrinks back into it.
+    /// </summary>
+    private void ApplyPresence(float eased)
+    {
+        if (spheres != null)
+        {
+            for (int i = 0; i < spheres.Length; ++i)
+            {
+                if (spheres[i].planet)
+                {
+                    spheres[i].planet.localScale = spheres[i].planetScale * eased;
+                }
 
-        targetRadius = Mathf.Max(boxSize.x, boxSize.z) * .5f * radiusScale;
+                if (spheres[i].trail)
+                {
+                    spheres[i].trail.widthMultiplier = spheres[i].trailBaseWidth * eased;
+                }
+            }
+        }
+
+        UpdateStar(eased);
+        UpdateLight(eased);
     }
 
     private void SetupStar()
@@ -171,7 +265,7 @@ public class OrbitingCluster : MonoBehaviour
         starRenderer.SetPropertyBlock(propertyBlock);
     }
 
-    private void UpdateStar()
+    private void UpdateStar(float presence)
     {
         if (!starRenderer)
         {
@@ -179,7 +273,9 @@ public class OrbitingCluster : MonoBehaviour
         }
 
         float pulse = 1f + Mathf.Sin(Time.time * starPulseSpeed + starPulsePhase) * starPulseAmplitude;
-        float size = Mathf.Max(minStarSize, baseRadius * starScale) * pulse;
+
+        // The minimum size is a minimum of the living star, presence shrinks it past that to nothing
+        float size = Mathf.Max(minStarSize, baseRadius * starScale) * pulse * presence;
         starRenderer.transform.localScale = Vector3.one * size;
     }
 
@@ -194,7 +290,7 @@ public class OrbitingCluster : MonoBehaviour
         clusterLight.intensity = lightIntensity;
     }
 
-    private void UpdateLight()
+    private void UpdateLight(float presence)
     {
         if (!clusterLight)
         {
@@ -203,6 +299,7 @@ public class OrbitingCluster : MonoBehaviour
 
         // Bigger clusters light a wider area around them
         clusterLight.range = baseRadius * lightRangeScale;
+        clusterLight.intensity = lightIntensity * presence;
     }
 
     private void SpawnSpheres()
@@ -214,17 +311,18 @@ public class OrbitingCluster : MonoBehaviour
         for (int i = 0; i < sphereCount; ++i)
         {
             GameObject sphere = Instantiate(orbitingSpherePrefab, transform);
-            Vector3 planetScale = Vector3.one * sphereScale * Random.Range(1f - sphereScaleJitter, 1f + sphereScaleJitter);
-            SetupPlanet(sphere, planetScale, GetPlanetColor());
 
             spheres[i] = new Sphere
             {
                 transform = sphere.transform,
+                planetScale = Vector3.one * sphereScale * Random.Range(1f - sphereScaleJitter, 1f + sphereScaleJitter),
                 angle = Random.Range(0f, 360f),
                 speed = Random.Range(speedRange.x, speedRange.y) * (Random.value < .5f ? -1f : 1f),
                 radiusFactor = Random.Range(1f - radiusJitter, 1f + radiusJitter),
                 orbitRotation = Quaternion.Euler(Random.Range(-maxInclination, maxInclination), Random.Range(0f, 360f), 0f),
             };
+
+            SetupPlanet(ref spheres[i], sphere, GetPlanetColor());
         }
     }
 
@@ -244,16 +342,17 @@ public class OrbitingCluster : MonoBehaviour
     }
 
     /// <summary>
-    /// Scales and colors the planet mesh of a freshly spawned sphere, and tints its trail to match.
+    /// Colors the planet mesh of a freshly spawned sphere, tints its trail to match, and caches the
+    /// transform and trail that the presence scales every frame.
     /// Everything else about the planet and its trail comes from the sphere prefab.
     /// </summary>
-    private void SetupPlanet(GameObject sphere, Vector3 scale, Color color)
+    private void SetupPlanet(ref Sphere sphere, GameObject sphereObject, Color color)
     {
         // The prefab root stays unscaled, so the planet scale does not affect the trail width
-        MeshRenderer planetRenderer = sphere.GetComponentInChildren<MeshRenderer>();
+        MeshRenderer planetRenderer = sphereObject.GetComponentInChildren<MeshRenderer>();
         if (planetRenderer)
         {
-            planetRenderer.transform.localScale = scale;
+            sphere.planet = planetRenderer.transform;
 
             planetRenderer.GetPropertyBlock(propertyBlock);
             propertyBlock.SetColor("_BaseColor", color);
@@ -261,9 +360,12 @@ public class OrbitingCluster : MonoBehaviour
             planetRenderer.SetPropertyBlock(propertyBlock);
         }
 
-        TrailRenderer trail = sphere.GetComponentInChildren<TrailRenderer>();
+        TrailRenderer trail = sphereObject.GetComponentInChildren<TrailRenderer>();
         if (trail)
         {
+            sphere.trail = trail;
+            sphere.trailBaseWidth = trail.widthMultiplier;
+
             trail.startColor = color;
             trail.endColor = new Color(color.r, color.g, color.b, 0f);
         }
