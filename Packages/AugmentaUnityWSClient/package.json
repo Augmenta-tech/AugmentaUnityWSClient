@@ -26,6 +26,11 @@
       "displayName": "Orbiting",
       "description": "Contains a sample scene turning each tracked cluster into a small star system: a glowing core of its own color, a light, and planets orbiting around it.",
       "path": "Samples~/SampleOrbiting"
+    },
+    {
+      "displayName": "Cluster Flow",
+      "description": "Contains a sample scene turning the point cloud of each tracked cluster into a flowing cloud of particles, that fades in and out as people enter and leave.\nTo use this sample, you'll need to manually add the Visual Effect Graph package.",
+      "path": "Samples~/SampleClusterFlow"
     }
   ]
 }
