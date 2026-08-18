@@ -21,6 +21,11 @@
       "displayName": "Simple Client",
       "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data.\nTo use this sample, you'll need to manually add the Visual Effect Graph package.",
       "path": "Samples~/SampleAugmentaClient"
+    },
+    {
+      "displayName": "Orbiting",
+      "description": "Contains a sample scene turning each tracked cluster into a small star system: a glowing core of its own color, a light, and planets orbiting around it.",
+      "path": "Samples~/SampleOrbiting"
     }
   ]
 }

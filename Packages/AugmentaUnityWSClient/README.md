@@ -26,9 +26,12 @@ Newever versions (1.6.0+) can also be used a [simulator](https://tech.docs.augme
 - You can now find the package in your project's Packages directory
 
 ### Learn how to use the package 
-The packages comes with a sample project that can you can study or reuse to learn how to work with Augmenta and get started.
+The packages comes with sample projects that can you can study or reuse to learn how to work with Augmenta and get started.
 
-In the Package Manager, select the package, and go to the "Samples" tab. On the right, you can "import" the sample to copy it to your Project.
+In the Package Manager, select the package, and go to the "Samples" tab. On the right, you can "import" a sample to copy it to your Project.
+
+- **Simple Client**: sets up the connection with a local Augmenta server and displays the received data. Requires the Visual Effect Graph package.
+- **Orbiting**: turns every tracked cluster into a small star system, with a glowing core and planets orbiting around it.
 
 ## Developping
 This repository contains the package itself as well as its dev environment. If you're planning on modifying the package and/or its samples:
