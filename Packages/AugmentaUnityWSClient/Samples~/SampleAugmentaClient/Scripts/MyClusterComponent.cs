@@ -7,7 +7,12 @@ using UnityEngine.VFX.Utility;
 public class MyClusterComponent : MonoBehaviour
 {
     [HideInInspector] public AugmentaCluster augmentaCluster;
+
+    [Tooltip("Feed the cluster point cloud to a VisualEffect on this GameObject. When disabled, no VisualEffect is required.")]
+    public bool usePointCloud = true;
+
     private VisualEffect effect;
+    private bool pointCloudEnabled;
 
     private int bufferCapacity = 500;
     private GraphicsBuffer pointsBuffer;
@@ -17,7 +22,21 @@ public class MyClusterComponent : MonoBehaviour
 
     void OnEnable()
     {
+        if (!usePointCloud)
+        {
+            pointCloudEnabled = false;
+            return;
+        }
+
         effect = GetComponent<VisualEffect>();
+        pointCloudEnabled = effect != null;
+
+        if (!pointCloudEnabled)
+        {
+            Debug.LogWarning($"{nameof(MyClusterComponent)} on {name} has usePointCloud enabled but no VisualEffect component: point cloud rendering is skipped.", this);
+            return;
+        }
+
         Assert.IsTrue(effect.HasGraphicsBuffer(pointsProperty));
         Assert.IsTrue(effect.HasUInt(pointsCountProperty));
         Assert.IsTrue(effect.HasMatrix4x4(sceneToWorldTransformProperty));
@@ -28,7 +47,11 @@ public class MyClusterComponent : MonoBehaviour
 
     void OnDisable()
     {
-        pointsBuffer.Release();
+        if (pointsBuffer != null)
+        {
+            pointsBuffer.Release();
+            pointsBuffer = null;
+        }
     }
 
     public void Initialize(AugmentaCluster obj)
@@ -61,11 +84,17 @@ public class MyClusterComponent : MonoBehaviour
         transform.localScale = augmentaCluster.boxSize;
 
         //// Update Point Cloud Info
+        if (!pointCloudEnabled)
+        {
+            return;
+        }
+
         if (augmentaCluster.points.Count == 0)
         {
             if (pointsBuffer != null)
             {
                 pointsBuffer.Release();
+                pointsBuffer = null;
             }
             bufferCapacity = 0;
             
@@ -106,9 +135,6 @@ public class MyClusterComponent : MonoBehaviour
         augmentaCluster.onLeave.RemoveListener(OnObjectLeave);
 
         Debug.Log("Cluster object leaving. Bye !");
-
-        // In this sample cleaning up leaving objects is done by the MyAugmentaManager component
-        //Destroy(gameObject);
     }
 
     private void OnObjectEnter(AugmentaObject obj)

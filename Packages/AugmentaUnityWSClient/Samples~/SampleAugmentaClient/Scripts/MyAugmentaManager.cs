@@ -183,6 +183,9 @@ public class MyAugmentaManager : MonoBehaviour
 
     private void CreateCustomCluster(AugmentaCluster augmentaCluster)
     {
+        if(!customClusterPrefab)
+            return;
+
         GameObject newObject = Instantiate(customClusterPrefab, clusterRoot.transform);
 
         MyClusterComponent clusterComponent = newObject.GetComponent<MyClusterComponent>();
@@ -204,6 +207,9 @@ public class MyAugmentaManager : MonoBehaviour
 
     private void CreateCustomPointCloud(AugmentaPointCloud augmentaPC)
     {
+        if(!customPointCloudPrefab)
+            return;
+
         GameObject newObject = Instantiate(customPointCloudPrefab, pointCloudsRoot.transform);
 
         MyPointCloudComponent pointCloudComponent = newObject.GetComponent<MyPointCloudComponent>();
