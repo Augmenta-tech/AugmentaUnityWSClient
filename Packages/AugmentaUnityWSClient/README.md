@@ -33,6 +33,7 @@ In the Package Manager, select the package, and go to the "Samples" tab. On the 
 - **Simple Client**: sets up the connection with a local Augmenta server and displays the received data. Requires the Visual Effect Graph package.
 - **Orbiting**: turns every tracked cluster into a small star system, with a glowing core and planets orbiting around it.
 - **Cluster Flow**: turns the point cloud of every tracked cluster into a flowing cloud of particles that fades in and out as people enter and leave. Requires the Visual Effect Graph package.
+- **Cluster Field**: attracts and swirls a single particle field covering the whole space around every tracked cluster, through a reusable Custom HLSL file. Requires the Visual Effect Graph package.
 
 ## Developping
 This repository contains the package itself as well as its dev environment. If you're planning on modifying the package and/or its samples:

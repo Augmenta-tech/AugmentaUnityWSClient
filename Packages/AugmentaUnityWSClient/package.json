@@ -31,6 +31,11 @@
       "displayName": "Cluster Flow",
       "description": "Contains a sample scene turning the point cloud of each tracked cluster into a flowing cloud of particles, that fades in and out as people enter and leave.\nTo use this sample, you'll need to manually add the Visual Effect Graph package.",
       "path": "Samples~/SampleClusterFlow"
+    },
+    {
+      "displayName": "Cluster Field",
+      "description": "Contains a sample scene where a single particle field covering the whole space is attracted and swirled by every tracked cluster, through a reusable Custom HLSL file.\nTo use this sample, you'll need to manually add the Visual Effect Graph package.",
+      "path": "Samples~/SampleClusterField"
     }
   ]
 }
