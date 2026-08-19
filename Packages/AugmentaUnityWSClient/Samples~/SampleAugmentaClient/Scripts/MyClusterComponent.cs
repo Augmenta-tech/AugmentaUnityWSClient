@@ -20,6 +20,8 @@ public class MyClusterComponent : MonoBehaviour
     private ExposedProperty pointsCountProperty = "PointsCount";
     private ExposedProperty sceneToWorldTransformProperty = "SceneToWorldTransform";
 
+    private bool hasObjectChanged = false;
+
     void OnEnable()
     {
         if (!usePointCloud)
@@ -54,30 +56,12 @@ public class MyClusterComponent : MonoBehaviour
         }
     }
 
-    public void Initialize(AugmentaCluster obj)
+    private void Update()
     {
-        augmentaCluster = obj;
-        augmentaCluster.onEnter.AddListener(OnObjectEnter);
-        augmentaCluster.onUpdate.AddListener(OnObjectUpdate);
-        augmentaCluster.onLeave.AddListener(OnObjectLeave);
-
-        transform.position = augmentaCluster.transform.position;
-        transform.rotation = augmentaCluster.transform.rotation;
-        transform.localScale = augmentaCluster.boxSize;
-    }
-
-    public void Shutdown()
-    {
-        augmentaCluster.onEnter.RemoveListener(OnObjectEnter);
-        augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
-        augmentaCluster.onLeave.RemoveListener(OnObjectLeave);
-        augmentaCluster = null;
-    }
-
-    private void OnObjectUpdate(AugmentaObject obj)
-    {
-        Assert.AreEqual(obj, augmentaCluster);
-
+        if (!hasObjectChanged)
+        {
+            return;
+        }
         //// Update Box Info
         transform.position = augmentaCluster.transform.position;
         transform.rotation = augmentaCluster.transform.rotation;
@@ -97,7 +81,7 @@ public class MyClusterComponent : MonoBehaviour
                 pointsBuffer = null;
             }
             bufferCapacity = 0;
-            
+
             return;
         }
 
@@ -123,23 +107,29 @@ public class MyClusterComponent : MonoBehaviour
         this.effect.SetGraphicsBuffer(pointsProperty, pointsBuffer);
 
         // Point Clouds come in scene-pivot-relative coordinates, so we need to transform them in the shader
-        this.effect.SetMatrix4x4(sceneToWorldTransformProperty, obj.GetParentScene().GetPivot().transform.localToWorldMatrix);
+        this.effect.SetMatrix4x4(sceneToWorldTransformProperty, augmentaCluster.GetParentScene().GetPivot().transform.localToWorldMatrix);
+
+        hasObjectChanged = false;
     }
 
-    private void OnObjectLeave(AugmentaObject obj)
+    public void Initialize(AugmentaCluster obj)
     {
-        Assert.AreEqual(obj, augmentaCluster);
+        augmentaCluster = obj;
+        augmentaCluster.onUpdate.AddListener(OnObjectUpdate);
 
-        augmentaCluster.onEnter.RemoveListener(OnObjectEnter);
+        transform.position = augmentaCluster.transform.position;
+        transform.rotation = augmentaCluster.transform.rotation;
+        transform.localScale = augmentaCluster.boxSize;
+    }
+
+    public void Shutdown()
+    {
         augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
-        augmentaCluster.onLeave.RemoveListener(OnObjectLeave);
-
-        Debug.Log("Cluster object leaving. Bye !");
+        augmentaCluster = null;
     }
 
-    private void OnObjectEnter(AugmentaObject obj)
+    private void OnObjectUpdate(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaCluster);
-        Debug.Log("Cluster object entered. Hello !");
+        hasObjectChanged = true;
     }
 }
