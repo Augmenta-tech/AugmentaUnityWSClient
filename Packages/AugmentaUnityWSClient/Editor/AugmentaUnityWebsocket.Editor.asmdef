@@ -1,0 +1,6 @@
+{
+	"name": "Augmenta Unity Client Editor",
+	"includePlatforms": [
+		"Editor"
+	]
+}
