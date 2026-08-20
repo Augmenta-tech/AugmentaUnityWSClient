@@ -18,9 +18,9 @@
   "unity": "2018.3",
   "samples": [
     {
-      "displayName": "Simple Client",
-      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the received data.\nThis sample uses the Visual Effect Graph package.",
-      "path": "Samples~/SampleAugmentaClient"
+      "displayName": "Cluster Box",
+      "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the bounding box of each tracked cluster.",
+      "path": "Samples~/SampleClusterBox"
     },
     {
       "displayName": "Orbiting",

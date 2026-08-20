@@ -1,7 +1,7 @@
 using AugmentaWebsocketClient;
 using UnityEngine;
 
-public class MyZoneComponent : MonoBehaviour
+public class ClusterBoxZone : MonoBehaviour
 {
     private AugmentaZone augmentaZone;
 

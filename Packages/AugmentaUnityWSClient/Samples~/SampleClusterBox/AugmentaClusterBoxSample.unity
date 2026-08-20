@@ -155,8 +155,8 @@ Camera:
   m_GameObject: {fileID: 786078100}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -342,7 +342,7 @@ GameObject:
   - component: {fileID: 2133542028}
   - component: {fileID: 2133542027}
   m_Layer: 0
-  m_Name: MyAugmentaManager
+  m_Name: ClusterBoxManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -362,7 +362,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MyAugmentaManager
   augmentaClient: {fileID: 1597585080}
   customClusterPrefab: {fileID: 4508665158112160878, guid: f9af9fa7ff225fd4a87c9d653f5758d5, type: 3}
-  customPointCloudPrefab: {fileID: 4508665158112160878, guid: d4870ef62741a824a8a66b4d66b8f629, type: 3}
 --- !u!4 &2133542028
 Transform:
   m_ObjectHideFlags: 0

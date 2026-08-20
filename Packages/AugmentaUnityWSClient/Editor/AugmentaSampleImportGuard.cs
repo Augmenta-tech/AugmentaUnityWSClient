@@ -27,7 +27,6 @@ namespace AugmentaWebsocketClient
         /// </summary>
         private static readonly string[] vfxSampleFolders =
         {
-            "SampleAugmentaClient", "Simple Client",
             "SampleClusterFlow", "Cluster Flow",
             "SampleClusterField", "Cluster Field"
         };

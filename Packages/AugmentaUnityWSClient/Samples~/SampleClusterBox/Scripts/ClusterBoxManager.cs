@@ -4,24 +4,21 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 /// <summary>
-/// Listens to events fired by an Augmenta client, and create new custom GameObjects for each
-/// incoming cluster / point cloud.
+/// Listens to events fired by an Augmenta client, and create a new custom GameObject for each
+/// incoming cluster.
 /// </summary>
-public class MyAugmentaManager : MonoBehaviour
+public class ClusterBoxManager : MonoBehaviour
 {
     public AugmentaClient augmentaClient;
     public GameObject customClusterPrefab;
-    public GameObject customPointCloudPrefab;
 
     private GameObject zonesRoot;
     private GameObject clusterRoot;
-    private GameObject pointCloudsRoot;
 
     private AugmentaScene augmentaScene;
 
-    private List<MyZoneComponent> zones = new();
-    private List<MyClusterComponent> clusters = new();
-    private List<MyPointCloudComponent> pointClouds = new();
+    private List<ClusterBoxZone> zones = new();
+    private List<ClusterBox> clusters = new();
 
     private void OnEnable()
     {
@@ -44,9 +41,6 @@ public class MyAugmentaManager : MonoBehaviour
 
         clusterRoot = new GameObject("Clusters");
         clusterRoot.transform.parent = transform;
-
-        pointCloudsRoot = new GameObject("PointClouds");
-        pointCloudsRoot.transform.parent = transform;
     }
 
     private void OnDisable()
@@ -91,16 +85,6 @@ public class MyAugmentaManager : MonoBehaviour
         RemoveCustomCluster(cluster);
     }
 
-    private void OnPointCloudEnteredScene(AugmentaScene scene, AugmentaPointCloud pc)
-    {
-        CreateCustomPointCloud(pc);
-    }
-
-    private void OnPointCloudLeftScene(AugmentaScene scene, AugmentaPointCloud pc)
-    {
-        RemoveCustomPointCloud(pc);
-    }
-
     private void OnContainerUpdated(AugmentaContainer container)
     {
         // TODO
@@ -125,8 +109,6 @@ public class MyAugmentaManager : MonoBehaviour
         augmentaScene = augmentaClient.GetWorld().GetScene(0);
         augmentaScene.onClusterEntered.AddListener(OnClusterEnteredScene);
         augmentaScene.onClusterLeft.AddListener(OnClusterLeftScene);
-        augmentaScene.onPointCloudEntered.AddListener(OnPointCloudEnteredScene);
-        augmentaScene.onPointCloudLeft.AddListener(OnPointCloudLeftScene);
 
         // Create existing objects
         foreach (var augmentaObject in augmentaScene.clusters)
@@ -140,7 +122,7 @@ public class MyAugmentaManager : MonoBehaviour
         foreach (var zone in augmentaZones)
         {
             var zoneGameObject = new GameObject(zone.name);
-            var zoneComponent = zoneGameObject.AddComponent<MyZoneComponent>();
+            var zoneComponent = zoneGameObject.AddComponent<ClusterBoxZone>();
             zoneComponent.Initialize(zone);
             zones.Add(zoneComponent);
 
@@ -152,8 +134,6 @@ public class MyAugmentaManager : MonoBehaviour
     {
         augmentaScene.onClusterEntered.RemoveListener(OnClusterEnteredScene);
         augmentaScene.onClusterLeft.RemoveListener(OnClusterLeftScene);
-        augmentaScene.onPointCloudEntered.RemoveListener(OnPointCloudEnteredScene);
-        augmentaScene.onPointCloudLeft.RemoveListener(OnPointCloudLeftScene);
         augmentaScene = null;
 
         // Clear clusters
@@ -163,14 +143,6 @@ public class MyAugmentaManager : MonoBehaviour
             Destroy(cluster.gameObject);
         }
         clusters.Clear();
-
-        // Clear point clouds
-        foreach (var pc in pointClouds)
-        {
-            pc.Shutdown();
-            Destroy(pc.gameObject);
-        }
-        pointClouds.Clear();
 
         // Clear zones
         foreach (var zone in zones)
@@ -188,43 +160,20 @@ public class MyAugmentaManager : MonoBehaviour
 
         GameObject newObject = Instantiate(customClusterPrefab, clusterRoot.transform);
 
-        MyClusterComponent clusterComponent = newObject.GetComponent<MyClusterComponent>();
+        ClusterBox clusterComponent = newObject.GetComponent<ClusterBox>();
         clusterComponent.Initialize(augmentaCluster);
         clusters.Add(clusterComponent);
     }
 
     private void RemoveCustomCluster(AugmentaCluster augmentaCluster)
     {
-        int idx = clusters.FindIndex((MyClusterComponent comp) => { return comp.augmentaCluster == augmentaCluster; });
+        int idx = clusters.FindIndex((ClusterBox comp) => { return comp.augmentaCluster == augmentaCluster; });
         Assert.AreNotEqual(idx, -1);
-        
-        MyClusterComponent comp = clusters[idx];
+
+        ClusterBox comp = clusters[idx];
         comp.Shutdown();
         clusters.RemoveAt(idx);
-        
-        Destroy(comp.gameObject);
-    }
 
-    private void CreateCustomPointCloud(AugmentaPointCloud augmentaPC)
-    {
-        if(!customPointCloudPrefab)
-            return;
-
-        GameObject newObject = Instantiate(customPointCloudPrefab, pointCloudsRoot.transform);
-
-        MyPointCloudComponent pointCloudComponent = newObject.GetComponent<MyPointCloudComponent>();
-        pointCloudComponent.Initialize(augmentaPC);
-        pointClouds.Add(pointCloudComponent);
-    }
-
-    private void RemoveCustomPointCloud(AugmentaPointCloud augmentaPC)
-    {
-        int idx = pointClouds.FindIndex((MyPointCloudComponent comp) => { return comp.augmentaPointCloud == augmentaPC; });
-        Assert.AreNotEqual(idx, -1);
-        MyPointCloudComponent comp = pointClouds[idx];
-        comp.Shutdown();
-
-        pointClouds.RemoveAt(idx);
         Destroy(comp.gameObject);
     }
 }
