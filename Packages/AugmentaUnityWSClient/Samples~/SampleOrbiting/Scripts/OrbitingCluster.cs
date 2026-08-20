@@ -88,6 +88,10 @@ public class OrbitingCluster : MonoBehaviour
     // Random phase so several clusters don't pulse in sync
     private float starPulsePhase;
 
+    // Set by the cluster event, consumed in Update: the cluster is read once per frame, not once
+    // per received message
+    private bool hasObjectChanged;
+
     // Latest values received from the cluster, smoothly caught up with in Update
     private Vector3 targetPosition;
     private float targetRadius;
@@ -154,6 +158,7 @@ public class OrbitingCluster : MonoBehaviour
 
         augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
         augmentaCluster = null;
+        hasObjectChanged = false;
     }
 
     /// <summary>
@@ -188,6 +193,12 @@ public class OrbitingCluster : MonoBehaviour
             return;
         }
 
+        if (hasObjectChanged)
+        {
+            ReadClusterTargets();
+            hasObjectChanged = false;
+        }
+
         // MoveTowards, not SmoothDamp: the fade must reach exactly 0 in a known time, the owner
         // destroys the system on that
         float presenceDuration = presenceTarget > presence ? appearDuration : disappearDuration;
@@ -216,8 +227,7 @@ public class OrbitingCluster : MonoBehaviour
 
     private void OnObjectUpdate(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaCluster);
-        ReadClusterTargets();
+        hasObjectChanged = true;
     }
 
     private void ReadClusterTargets()

@@ -47,6 +47,10 @@ public class ClusterFlowEmitter : MonoBehaviour
 
     private Color clusterColor = Color.white;
 
+    // Set by the cluster event, consumed in Update: the points are uploaded once per frame, not
+    // once per received message
+    private bool hasObjectChanged;
+
     // 0 = no particle emitted, 1 = fully present. Drives both the spawn rate and the brightness.
     private float presence;
     private float presenceTarget;
@@ -81,6 +85,12 @@ public class ClusterFlowEmitter : MonoBehaviour
 
     private void Update()
     {
+        if (hasObjectChanged)
+        {
+            UploadClusterPoints();
+            hasObjectChanged = false;
+        }
+
         // MoveTowards, not SmoothDamp: the fade must reach exactly 0 in a known time, the owner
         // destroys the emitter on that
         float presenceDuration = presenceTarget > presence ? appearDuration : disappearDuration;
@@ -137,7 +147,7 @@ public class ClusterFlowEmitter : MonoBehaviour
         effect.SetVector4(colorProperty, clusterColor);
 
         // Push a first frame of points, so the particles born on the next frame have targets
-        OnObjectUpdate(augmentaCluster);
+        UploadClusterPoints();
     }
 
     /// <summary>
@@ -152,6 +162,7 @@ public class ClusterFlowEmitter : MonoBehaviour
 
         augmentaCluster.onUpdate.RemoveListener(OnObjectUpdate);
         augmentaCluster = null;
+        hasObjectChanged = false;
     }
 
     /// <summary>
@@ -183,13 +194,16 @@ public class ClusterFlowEmitter : MonoBehaviour
 
         presenceTarget = 1f;
 
-        OnObjectUpdate(augmentaCluster);
+        UploadClusterPoints();
     }
 
     private void OnObjectUpdate(AugmentaObject obj)
     {
-        Assert.AreEqual(obj, augmentaCluster);
+        hasObjectChanged = true;
+    }
 
+    private void UploadClusterPoints()
+    {
         // Only used to match a returning cluster with this emitter: the particles are simulated in
         // world space from the buffer, so this transform does not move them
         transform.position = GetFollowPosition(augmentaCluster);
