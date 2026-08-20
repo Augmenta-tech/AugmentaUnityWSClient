@@ -165,14 +165,15 @@ namespace AugmentaWebsocketClient
 
             if (isConnected)
             {
-                var options = GetProtocolOptions();
-                if (!options.Equals(augmentaClient.options))
+                var requestedOptions = GetProtocolOptions();
+                var clientOptions = augmentaClient.GetOptions();
+                if (!requestedOptions.Equals(clientOptions))
                 {
-                    augmentaClient.options = options;
-                    SendRegisterMessage();
+                    ShutdownAugmentaClient();
+                    InitializeAugmentaClient(requestedOptions);
                 }
 
-                if (augmentaClient.options.usePolling && hasReceivedSincePolling)
+                if (clientOptions.usePolling && hasReceivedSincePolling)
                 {
                     SendPollMessage(); //we can do it here since update will be shared with the engine runtime, so it will be called once per frame
                 }
@@ -211,8 +212,8 @@ namespace AugmentaWebsocketClient
 
                 Debug.Log("Connection to " + serverURL + " open");
 
-                augmentaClient.options = GetProtocolOptions();
-                SendRegisterMessage();
+                var options = GetProtocolOptions();
+                InitializeAugmentaClient(options);
             };
 
             websocketClient.OnError += (sender, e) =>
@@ -247,10 +248,15 @@ namespace AugmentaWebsocketClient
             activePort = port;
         }
 
-        private void SendRegisterMessage()
+        private void InitializeAugmentaClient(Augmenta.ProtocolOptions options)
         {
-            var message = augmentaClient.GetRegisterMessage(clientName);
-            websocketClient.Send(message);
+            var registerMessage = augmentaClient.Initialize(clientName, ref options);
+            websocketClient.Send(registerMessage);
+        }
+
+        void ShutdownAugmentaClient()
+        {
+            augmentaClient.Shutdown();
         }
 
         private void SendPollMessage()
