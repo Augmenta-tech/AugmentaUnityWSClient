@@ -23,9 +23,9 @@
       "path": "Samples~/SampleClusterBox"
     },
     {
-      "displayName": "Orbiting",
+      "displayName": "Cluster Orbits",
       "description": "Contains a sample scene turning each tracked cluster into a small star system: a glowing core of its own color, a light, and planets orbiting around it.",
-      "path": "Samples~/SampleOrbiting"
+      "path": "Samples~/SampleClusterOrbits"
     },
     {
       "displayName": "Cluster Flow",

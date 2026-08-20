@@ -5,7 +5,7 @@ using UnityEngine;
 /// a rectangle. Brightness is carried by vertex colors, so all the stars share one material.
 /// </summary>
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class Starfield : MonoBehaviour
+public class ClusterOrbitsStarfield : MonoBehaviour
 {
     [Header("Field")]
     public int starCount = 300;

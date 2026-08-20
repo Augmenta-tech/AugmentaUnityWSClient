@@ -288,7 +288,7 @@ MonoBehaviour:
   scenePrefab: {fileID: 0}
   zonePrefab: {fileID: 0}
   objectPrefab: {fileID: 0}
-  clientName: Unity Sample - Human Tracking
+  clientName: Unity Sample - Cluster Box
   ipAddress: 127.0.0.1
   port: 6060
   autoReconnect: 1

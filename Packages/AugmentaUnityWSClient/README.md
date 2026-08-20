@@ -31,7 +31,7 @@ The packages comes with sample projects that can you can study or reuse to learn
 In the Package Manager, select the package, and go to the "Samples" tab. On the right, you can "import" a sample to copy it to your Project.
 
 - **Cluster Box**: sets up the connection with a local Augmenta server and displays the bounding box of every tracked cluster.
-- **Orbiting**: turns every tracked cluster into a small star system, with a glowing core and planets orbiting around it.
+- **Cluster Orbits**: turns every tracked cluster into a small star system, with a glowing core and planets orbiting around it.
 - **Cluster Flow**: turns the point cloud of every tracked cluster into a flowing cloud of particles that fades in and out as people enter and leave. Requires the Visual Effect Graph package.
 - **Cluster Field**: attracts and swirls a single particle field covering the whole space around every tracked cluster, through a reusable Custom HLSL file. Requires the Visual Effect Graph package.
 

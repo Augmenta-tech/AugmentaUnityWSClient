@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 /// Listens to events fired by an Augmenta client, and create new custom GameObjects for each
 /// incoming cluster.
 /// </summary>
-public class OrbitingManager : MonoBehaviour
+public class ClusterOrbitsManager : MonoBehaviour
 {
     public AugmentaClient augmentaClient;
     public GameObject orbitingClusterPrefab;
@@ -36,11 +36,11 @@ public class OrbitingManager : MonoBehaviour
 
     private AugmentaScene augmentaScene;
 
-    private List<OrbitingCluster> clusters = new();
+    private List<ClusterOrbits> clusters = new();
 
     // Systems whose cluster has left, kept alive while they fade out so a flickering cluster coming
     // back nearby can take one over instead of spawning a second system on top of it
-    private List<OrbitingCluster> disappearingClusters = new();
+    private List<ClusterOrbits> disappearingClusters = new();
 
     private void OnEnable()
     {
@@ -166,7 +166,7 @@ public class OrbitingManager : MonoBehaviour
 
     private void CreateCustomCluster(AugmentaCluster augmentaCluster)
     {
-        OrbitingCluster revived = FindClusterToRevive(augmentaCluster);
+        ClusterOrbits revived = FindClusterToRevive(augmentaCluster);
         if (revived)
         {
             // Keeps its own color and planets, so a flicker only shows as a dip in size
@@ -178,7 +178,7 @@ public class OrbitingManager : MonoBehaviour
 
         GameObject newObject = Instantiate(orbitingClusterPrefab, clusterRoot.transform);
 
-        OrbitingCluster clusterComponent = newObject.GetComponent<OrbitingCluster>();
+        ClusterOrbits clusterComponent = newObject.GetComponent<ClusterOrbits>();
         clusterComponent.Initialize(augmentaCluster, GetClusterColor(augmentaCluster.objectID));
         clusters.Add(clusterComponent);
     }
@@ -188,11 +188,11 @@ public class OrbitingManager : MonoBehaviour
     /// be the same tracking coming back. Ids are not compared: a flickering tracking usually comes
     /// back under a new id.
     /// </summary>
-    private OrbitingCluster FindClusterToRevive(AugmentaCluster augmentaCluster)
+    private ClusterOrbits FindClusterToRevive(AugmentaCluster augmentaCluster)
     {
-        Vector3 position = OrbitingCluster.GetFollowPosition(augmentaCluster);
+        Vector3 position = ClusterOrbits.GetFollowPosition(augmentaCluster);
 
-        OrbitingCluster closest = null;
+        ClusterOrbits closest = null;
         float closestDistance = reviveDistance;
 
         foreach (var cluster in disappearingClusters)
@@ -221,10 +221,10 @@ public class OrbitingManager : MonoBehaviour
 
     private void RemoveCustomCluster(AugmentaCluster augmentaCluster)
     {
-        int idx = clusters.FindIndex((OrbitingCluster comp) => { return comp.augmentaCluster == augmentaCluster; });
+        int idx = clusters.FindIndex((ClusterOrbits comp) => { return comp.augmentaCluster == augmentaCluster; });
         Assert.AreNotEqual(idx, -1);
         
-        OrbitingCluster comp = clusters[idx];
+        ClusterOrbits comp = clusters[idx];
         clusters.RemoveAt(idx);
 
         // Kept around until it has fully faded out, and destroyed by Update then

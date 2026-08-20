@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 /// Follows an Augmenta cluster and turns it into a small star system: a glowing core, a light of
 /// the cluster color, and planets orbiting on tilted planes in shades of that same color.
 /// </summary>
-public class OrbitingCluster : MonoBehaviour
+public class ClusterOrbits : MonoBehaviour
 {
     [HideInInspector] public AugmentaCluster augmentaCluster;
 
