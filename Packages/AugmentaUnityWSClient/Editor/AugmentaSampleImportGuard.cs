@@ -20,12 +20,16 @@ namespace AugmentaWebsocketClient
     /// </summary>
     internal class AugmentaSampleImportGuard : AssetPostprocessor
     {
-        /// <summary>Sample folder names shipping a .vfx. Add a new VFX sample here.</summary>
+        /// <summary>
+        /// Folder names of the samples shipping a .vfx. Both spellings are needed: the Package Manager
+        /// copies a sample into a folder named after its package.json displayName, while a sample used from
+        /// the repository keeps its Samples~ folder name. Add a new VFX sample here, under both names.
+        /// </summary>
         private static readonly string[] vfxSampleFolders =
         {
-            "SampleAugmentaClient",
-            "SampleClusterFlow",
-            "SampleClusterField"
+            "SampleAugmentaClient", "Simple Client",
+            "SampleClusterFlow", "Cluster Flow",
+            "SampleClusterField", "Cluster Field"
         };
 
         private const string vfxGraphPackage = "com.unity.visualeffectgraph";
