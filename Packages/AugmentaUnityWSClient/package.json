@@ -1,6 +1,6 @@
 {
   "name": "tech.augmenta.unity-ws-client",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "author": {
     "name": "Augmenta",
     "url": "(http://augmenta.tech)"
@@ -17,6 +17,11 @@
   "repository": "Augmenta-tech/AugmentaUnityWebsocket",
   "unity": "2018.3",
   "samples": [
+    {
+      "displayName": "Calibration",
+      "description": "Contains a sample scene with an AugmentaCalibrationManager that offsets, rotates and scales the client from the inspector, and draws the scene floor and every cluster on top of any scene content to calibrate Augmenta on site.",
+      "path": "Samples~/SampleCalibration"
+    },
     {
       "displayName": "Cluster Box",
       "description": "Contains a sample scene setting up the connection with a local Augmenta server and displaying the bounding box of each tracked cluster.",
