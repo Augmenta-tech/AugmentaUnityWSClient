@@ -41,6 +41,9 @@ public class AugmentaCalibrationManager : MonoBehaviour
     private readonly List<AugmentaScene> scenes = new();
     private readonly List<CalibrationSceneFloor> floors = new();
     private readonly List<CalibrationCluster> clusters = new();
+    private Color appliedFloorColor;
+    private Color appliedGridColor;
+    private Color appliedBoundsColor;
 
     #region MonoBehaviour
 
@@ -65,11 +68,26 @@ public class AugmentaCalibrationManager : MonoBehaviour
     {
         ApplyTransform();
 
+        bool colorsChanged = floorColor != appliedFloorColor
+                             || gridColor != appliedGridColor
+                             || boundsColor != appliedBoundsColor;
+        if (colorsChanged)
+        {
+            appliedFloorColor = floorColor;
+            appliedGridColor = gridColor;
+            appliedBoundsColor = boundsColor;
+        }
+
         foreach (var floor in floors)
         {
             if (floor.gameObject.activeSelf != showSceneFloor)
             {
                 floor.gameObject.SetActive(showSceneFloor);
+            }
+
+            if (colorsChanged)
+            {
+                floor.ApplyColors(this);
             }
         }
 

@@ -28,17 +28,21 @@ public class CalibrationSceneFloor : MonoBehaviour
         floor = CreateChild("Floor", manager.quadMesh, manager.gridMaterial, out floorRenderer);
         bounds = CreateChild("Bounds", manager.wireCubeMesh, manager.overlayMaterial, out boundsRenderer);
 
-        propertyBlock.Clear();
+        ApplyColors(manager);
+        ApplySize();
+    }
+
+    public void ApplyColors(AugmentaCalibrationManager manager)
+    {
+        floorRenderer.GetPropertyBlock(propertyBlock);
         propertyBlock.SetColor(colorId, manager.floorColor);
         propertyBlock.SetColor(lineColorId, manager.gridColor);
-        propertyBlock.SetVector(sizeId, new Vector2(scene.size.x, scene.size.z));
+        propertyBlock.SetVector(sizeId, new Vector2(augmentaScene.size.x, augmentaScene.size.z));
         floorRenderer.SetPropertyBlock(propertyBlock);
 
-        propertyBlock.Clear();
+        boundsRenderer.GetPropertyBlock(propertyBlock);
         propertyBlock.SetColor(colorId, manager.boundsColor);
         boundsRenderer.SetPropertyBlock(propertyBlock);
-
-        ApplySize();
     }
 
     public void Shutdown()
