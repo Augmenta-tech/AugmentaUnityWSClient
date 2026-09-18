@@ -32,7 +32,6 @@ namespace AugmentaWebsocketClient
         };
 
         private const string vfxGraphPackage = "com.unity.visualeffectgraph";
-        private const string vfxGraphAssembly = "Unity.VisualEffectGraph.Editor";
 
         // Session scoped: the pending graphs must survive the domain reload caused by the sample scripts
         // compiling, but a new Editor session has nothing left to fix.
@@ -184,13 +183,7 @@ namespace AugmentaWebsocketClient
 
         private static bool IsVisualEffectGraphInstalled()
         {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (assembly.GetName().Name == vfxGraphAssembly)
-                    return true;
-            }
-
-            return false;
+            return UnityEditor.PackageManager.PackageInfo.IsPackageRegistered(vfxGraphPackage);
         }
 
         private static void InstallVisualEffectGraph()

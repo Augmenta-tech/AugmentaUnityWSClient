@@ -12,7 +12,10 @@ namespace AugmentaWebsocketClient
         private GameObject pivot;
         private GameObject childrenContainer;
 
-        public AugmentaShape shape;
+        /// <summary>
+        /// The zone's shape, rebuilt from the server each time the zone is set up
+        /// </summary>
+        public AugmentaShape shape { get; private set; }
 
         /// <summary>
         /// Number of objects present in the zone
