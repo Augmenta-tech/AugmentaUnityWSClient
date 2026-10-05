@@ -104,8 +104,13 @@ namespace AugmentaWebsocketClient
         private float lastConnectTime;
         private float lastMessageTime;
 
-        private bool isProcessing;
-        private List<MessageEventArgs> wsMessages;
+        // Keep the application-side WebSocket backlog small and bounded. The
+        // receive callback applies backpressure instead of allowing an unbounded
+        // List<MessageEventArgs> to grow while Unity's main thread is busy.
+        private const int MaxPendingWebSocketMessages = 3;
+        private readonly object wsMessagesLock = new();
+        private Queue<MessageEventArgs> wsMessages;
+        private bool stopMessageQueue;
 
         private AugmentaWorld world;
 
@@ -115,7 +120,7 @@ namespace AugmentaWebsocketClient
 
         private void OnEnable()
         {
-            wsMessages = new List<MessageEventArgs>();
+            ResetMessageQueue();
 
             augmentaClient = new();
             augmentaClient.onSetupCompleted += OnSetupCompleted;
@@ -127,17 +132,20 @@ namespace AugmentaWebsocketClient
         {
             augmentaClient.onSetupCompleted -= OnSetupCompleted;
 
-            websocketClient.Close();
+            // Wake a receive callback that may be waiting for queue capacity
+            // before closing the socket, otherwise shutdown could deadlock.
+            StopMessageQueue();
+            websocketClient?.Close();
             augmentaClient.Clear();
             augmentaClient = null;
-            wsMessages.Clear();
         }
 
         void Update()
         {
             if (activeIPAddress != ipAddress || activePort != port)
             {
-                websocketClient.Close();
+                StopMessageQueue();
+                websocketClient?.Close();
                 websocketClient = null;
             }
 
@@ -179,14 +187,7 @@ namespace AugmentaWebsocketClient
                 }
             }
 
-            isProcessing = true;
-            foreach (var e in wsMessages)
-            {
-                ProcessMessage(e);
-            }
-
-            wsMessages.Clear();
-            isProcessing = false;
+            ProcessPendingMessages();
 
             receivingData = (Time.time - lastMessageTime) < 1;
 
@@ -202,8 +203,11 @@ namespace AugmentaWebsocketClient
 
         private void InitWebSocketClient()
         {
+            ResetMessageQueue();
+
             string serverURL = "ws://" + ipAddress + ":" + port;
             websocketClient = new WebSocket(serverURL);
+            var socket = websocketClient;
 
             websocketClient.OnOpen += (sender, e) =>
             {
@@ -220,14 +224,20 @@ namespace AugmentaWebsocketClient
             {
                 Debug.Log("Connection error: " + e.Message);
 
-                wsMessages.Clear();
+                if (!ReferenceEquals(websocketClient, socket))
+                    return;
+
+                ClearMessageQueue();
                 isConnecting = false;
                 isConnected = false;
             };
 
             websocketClient.OnClose += (sender, e) =>
             {
-                wsMessages.Clear();
+                if (!ReferenceEquals(websocketClient, socket))
+                    return;
+
+                ClearMessageQueue();
                 isConnecting = false;
                 isConnected = false;
 
@@ -236,16 +246,91 @@ namespace AugmentaWebsocketClient
 
             websocketClient.OnMessage += (sender, e) =>
             {
+                if (!ReferenceEquals(websocketClient, socket))
+                    return;
+
                 isConnected = true;
                 lastMessageTime = lastUpdateTime;
 
-                while (isProcessing) { }
+                lock (wsMessagesLock)
+                {
+                    while (!stopMessageQueue
+                        && ReferenceEquals(websocketClient, socket)
+                        && wsMessages.Count >= MaxPendingWebSocketMessages)
+                    {
+                        // Preserve ordered data and transient enter/leave events.
+                        // Blocking the receive callback here propagates natural
+                        // backpressure to the WebSocket/TCP stack instead of
+                        // retaining an unbounded application-side backlog.
+                        System.Threading.Monitor.Wait(wsMessagesLock);
+                    }
 
-                wsMessages.Add(e);
+                    if (stopMessageQueue || !ReferenceEquals(websocketClient, socket))
+                        return;
+
+                    wsMessages.Enqueue(e);
+                }
             };
 
             activeIPAddress = ipAddress;
             activePort = port;
+        }
+
+        private void ProcessPendingMessages()
+        {
+            int messagesToProcess;
+            lock (wsMessagesLock)
+            {
+                messagesToProcess = wsMessages?.Count ?? 0;
+            }
+
+            // Process only the messages that were pending at the start of this
+            // Unity frame. Newly received messages wait for the next Update(),
+            // keeping main-thread work predictable while the queue stays bounded.
+            for (int i = 0; i < messagesToProcess; ++i)
+            {
+                MessageEventArgs message;
+                lock (wsMessagesLock)
+                {
+                    if (wsMessages == null || wsMessages.Count == 0)
+                        break;
+
+                    message = wsMessages.Dequeue();
+                    System.Threading.Monitor.PulseAll(wsMessagesLock);
+                }
+
+                ProcessMessage(message);
+            }
+        }
+
+        private void ResetMessageQueue()
+        {
+            lock (wsMessagesLock)
+            {
+                wsMessages ??= new Queue<MessageEventArgs>(MaxPendingWebSocketMessages);
+                wsMessages.Clear();
+                stopMessageQueue = false;
+                System.Threading.Monitor.PulseAll(wsMessagesLock);
+            }
+        }
+
+        private void ClearMessageQueue()
+        {
+            lock (wsMessagesLock)
+            {
+                wsMessages?.Clear();
+                System.Threading.Monitor.PulseAll(wsMessagesLock);
+            }
+        }
+
+        private void StopMessageQueue()
+        {
+            lock (wsMessagesLock)
+            {
+                stopMessageQueue = true;
+                wsMessages?.Clear();
+                System.Threading.Monitor.PulseAll(wsMessagesLock);
+            }
         }
 
         private void InitializeAugmentaClient(Augmenta.ProtocolOptions options)
